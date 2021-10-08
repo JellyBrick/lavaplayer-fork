@@ -25,15 +25,15 @@ public final class RotatingNanoIpRoutePlanner extends AbstractRoutePlanner {
   private final AtomicReference<BigInteger> blockNanoStart;
   private final AtomicBoolean next;
 
-  public RotatingNanoIpRoutePlanner(final List<IpBlock> ipBlocks) {
+  public RotatingNanoIpRoutePlanner(final List<IpBlock<?>> ipBlocks) {
     this(ipBlocks, ip -> true);
   }
 
-  public RotatingNanoIpRoutePlanner(final List<IpBlock> ipBlocks, final Predicate<InetAddress> ipFilter) {
+  public RotatingNanoIpRoutePlanner(final List<IpBlock<?>> ipBlocks, final Predicate<InetAddress> ipFilter) {
     this(ipBlocks, ipFilter, true);
   }
 
-  public RotatingNanoIpRoutePlanner(final List<IpBlock> ipBlocks, final Predicate<InetAddress> ipFilter, final boolean handleSearchFailure) {
+  public RotatingNanoIpRoutePlanner(final List<IpBlock<?>> ipBlocks, final Predicate<InetAddress> ipFilter, final boolean handleSearchFailure) {
     super(ipBlocks, handleSearchFailure);
     this.ipFilter = ipFilter;
     this.currentBlock = new AtomicReference<>(BigInteger.ZERO);

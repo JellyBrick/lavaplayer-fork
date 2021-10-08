@@ -25,7 +25,7 @@ public class BalancingIpRoutePlanner extends AbstractRoutePlanner {
   /**
    * @param ipBlocks the block to perform balancing over.
    */
-  public BalancingIpRoutePlanner(List<IpBlock> ipBlocks) {
+  public BalancingIpRoutePlanner(List<IpBlock<?>> ipBlocks) {
     this(ipBlocks, i -> true);
   }
 
@@ -33,7 +33,7 @@ public class BalancingIpRoutePlanner extends AbstractRoutePlanner {
    * @param ipBlocks  the block to perform balancing over.
    * @param ipFilter function to filter out certain IP addresses picked from the IP block, causing another random to be chosen.
    */
-  public BalancingIpRoutePlanner(List<IpBlock> ipBlocks, Predicate<InetAddress> ipFilter) {
+  public BalancingIpRoutePlanner(List<IpBlock<?>> ipBlocks, Predicate<InetAddress> ipFilter) {
     this(ipBlocks, ipFilter, true);
   }
 
@@ -42,7 +42,7 @@ public class BalancingIpRoutePlanner extends AbstractRoutePlanner {
    * @param ipFilter            function to filter out certain IP addresses picked from the IP block, causing another random to be chosen.
    * @param handleSearchFailure whether a search 429 should trigger the ip as failing
    */
-  public BalancingIpRoutePlanner(List<IpBlock> ipBlocks, Predicate<InetAddress> ipFilter, boolean handleSearchFailure) {
+  public BalancingIpRoutePlanner(List<IpBlock<?>> ipBlocks, Predicate<InetAddress> ipFilter, boolean handleSearchFailure) {
     super(ipBlocks, handleSearchFailure);
     this.ipFilter = ipFilter;
   }
@@ -75,7 +75,7 @@ public class BalancingIpRoutePlanner extends AbstractRoutePlanner {
     return new Tuple<>(localAddress, remoteAddress);
   }
 
-  private InetAddress getRandomAddress(final IpBlock ipBlock) {
+  private InetAddress getRandomAddress(final IpBlock<?> ipBlock) {
     InetAddress localAddress;
     BigInteger it = BigInteger.valueOf(0);
     do {

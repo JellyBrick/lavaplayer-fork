@@ -22,7 +22,7 @@ public class TrackBoxBuilder {
     int titleWidth = width - 7;
 
     if (title.length() > titleWidth) {
-      builder.append(title.substring(0, titleWidth - 3));
+      builder.append(title, 0, titleWidth - 3);
       builder.append("...");
     } else {
       builder.append(title);
@@ -44,9 +44,7 @@ public class TrackBoxBuilder {
 
     StringBuilder builder = new StringBuilder();
 
-    for (int i = 0; i < 6 - cornerText.length(); i++) {
-      builder.append(" ");
-    }
+    builder.append(" ".repeat(Math.max(0, 6 - cornerText.length())));
 
     builder.append(cornerText);
 
@@ -56,9 +54,7 @@ public class TrackBoxBuilder {
     }
     builder.append("]");
 
-    for (int i = 0; i < spacing + 1; i++) {
-      builder.append(" ");
-    }
+    builder.append(" ".repeat(Math.max(0, spacing + 1)));
 
     builder.append(position);
     builder.append(" of ");
@@ -98,18 +94,14 @@ public class TrackBoxBuilder {
 
     builder.append("```");
     builder.append(TOP_LEFT_CORNER);
-    for (int i = 0; i < width - 1; i++) {
-      builder.append(BORDER_HORIZONTAL);
-    }
+    builder.append(BORDER_HORIZONTAL.repeat(Math.max(0, width - 1)));
     builder.append("\n");
 
     boxifyLine(builder, firstLine);
     boxifyLine(builder, secondLine);
 
     builder.append(BOTTOM_LEFT_CORNER);
-    for (int i = 0; i < width - 2; i++) {
-      builder.append(BORDER_HORIZONTAL);
-    }
+    builder.append(BORDER_HORIZONTAL.repeat(Math.max(0, width - 2)));
     builder.append(BOTTOM_RIGHT_CORNER);
     builder.append("```");
 

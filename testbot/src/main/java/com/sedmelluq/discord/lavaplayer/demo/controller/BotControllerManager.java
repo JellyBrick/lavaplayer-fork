@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 
 public class BotControllerManager {
-  private final List<BotControllerFactory> controllerFactories;
+  private final List<BotControllerFactory<?>> controllerFactories;
   private final Map<String, Command> commands;
 
   public BotControllerManager() {
@@ -22,7 +22,7 @@ public class BotControllerManager {
     commands = new HashMap<>();
   }
 
-  public void registerController(BotControllerFactory factory) {
+  public void registerController(BotControllerFactory<?> factory) {
     controllerFactories.add(factory);
 
     Class<?> controllerClass = factory.getControllerClass();
@@ -132,7 +132,7 @@ public class BotControllerManager {
     } else if ("no".equals(value) || "false".equals(value)) {
       return false;
     } else {
-      int integerValue = Integer.valueOf(value);
+      int integerValue = Integer.parseInt(value);
 
       if (integerValue == 1) {
         return true;
@@ -146,7 +146,7 @@ public class BotControllerManager {
 
   public List<BotController> createControllers(BotApplicationManager applicationManager, BotGuildContext context, Guild guild) {
     List<BotController> controllers = new ArrayList<>();
-    for (BotControllerFactory factory : controllerFactories) {
+    for (BotControllerFactory<?> factory : controllerFactories) {
       controllers.add(factory.create(applicationManager, context, guild));
     }
     return controllers;

@@ -71,8 +71,8 @@ public class MpegStandardFileTrackProvider implements MpegFileTrackProvider {
         reader.seek.seek(seekInfo.chunkOffsets[currentChunk]);
 
         int[] samples = seekInfo.chunkSamples[currentChunk];
-        for (int i = 0; i < samples.length; i++) {
-          consumer.consume(channel, samples[i]);
+        for (int sample : samples) {
+          consumer.consume(channel, sample);
         }
 
         currentChunk++;

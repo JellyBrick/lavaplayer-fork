@@ -108,9 +108,7 @@ public class ChannelCountPcmAudioFilter implements UniversalPcmAudioFilter {
 
   @Override
   public void process(float[][] input, int offset, int length) throws InterruptedException {
-    for (int i = 0; i < commonChannels; i++) {
-      splitFloatOutput[i] = input[i];
-    }
+      if (commonChannels >= 0) System.arraycopy(input, 0, splitFloatOutput, 0, commonChannels);
 
     for (int i = commonChannels; i < outputChannels; i++) {
       splitFloatOutput[i] = input[0];
@@ -121,9 +119,7 @@ public class ChannelCountPcmAudioFilter implements UniversalPcmAudioFilter {
 
   @Override
   public void process(short[][] input, int offset, int length) throws InterruptedException {
-    for (int i = 0; i < commonChannels; i++) {
-      splitShortOutput[i] = input[i];
-    }
+      if (commonChannels >= 0) System.arraycopy(input, 0, splitShortOutput, 0, commonChannels);
 
     for (int i = commonChannels; i < outputChannels; i++) {
       splitShortOutput[i] = input[0];

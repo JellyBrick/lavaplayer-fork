@@ -74,8 +74,7 @@ public abstract class AudioEventAdapter implements AudioEventListener {
       onTrackEnd(event.player, ((TrackEndEvent) event).track, ((TrackEndEvent) event).endReason);
     } else if (event instanceof TrackExceptionEvent) {
       onTrackException(event.player, ((TrackExceptionEvent) event).track, ((TrackExceptionEvent) event).exception);
-    } else if (event instanceof TrackStuckEvent) {
-      TrackStuckEvent stuck = (TrackStuckEvent) event;
+    } else if (event instanceof TrackStuckEvent stuck) {
       onTrackStuck(event.player, stuck.track, stuck.thresholdMs, stuck.stackTrace);
     }
   }

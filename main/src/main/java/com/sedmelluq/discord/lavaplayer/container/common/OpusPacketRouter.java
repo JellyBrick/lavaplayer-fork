@@ -128,7 +128,7 @@ public class OpusPacketRouter {
       inputFormat = new OpusAudioDataFormat(inputChannels, inputFrequency, frameSize);
     }
 
-    currentFrameDuration = frameSize * 1000 / inputFrequency;
+    currentFrameDuration = frameSize * 1000L / inputFrequency;
     currentTimecode += currentFrameDuration;
     return frameSize;
   }

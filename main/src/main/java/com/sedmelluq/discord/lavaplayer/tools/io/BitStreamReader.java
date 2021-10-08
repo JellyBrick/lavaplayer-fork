@@ -54,7 +54,7 @@ public class BitStreamReader {
     long value = asLong(bitsNeeded);
 
     if ((value & (1L << (bitsNeeded - 1))) != 0) {
-      return value | ~((1L << bitsNeeded) - 1);
+      return value | -(1L << bitsNeeded);
     } else {
       return value;
     }

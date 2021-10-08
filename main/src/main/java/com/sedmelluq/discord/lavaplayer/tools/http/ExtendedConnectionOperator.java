@@ -106,12 +106,10 @@ public class ExtendedConnectionOperator implements HttpClientConnectionOperator 
   public void upgrade(ManagedHttpClientConnection connection, HttpHost host, HttpContext context) throws IOException {
     ConnectionSocketFactory socketFactory = getSocketFactory(host, HttpClientContext.adapt(context));
 
-    if (!(socketFactory instanceof LayeredConnectionSocketFactory)) {
+    if (!(socketFactory instanceof LayeredConnectionSocketFactory layeredFactory)) {
       throw new UnsupportedSchemeException(host.getSchemeName() +
           " protocol does not support connection upgrade");
     }
-
-    LayeredConnectionSocketFactory layeredFactory = (LayeredConnectionSocketFactory) socketFactory;
 
     Socket socket = connection.getSocket();
     int port = this.schemePortResolver.resolve(host);
@@ -127,8 +125,7 @@ public class ExtendedConnectionOperator implements HttpClientConnectionOperator 
 
     Object resolvedObject = context.getAttribute(RESOLVED_ADDRESSES);
 
-    if (resolvedObject instanceof ResolvedAddresses) {
-      ResolvedAddresses resolved = (ResolvedAddresses) resolvedObject;
+    if (resolvedObject instanceof ResolvedAddresses resolved) {
 
       if (resolved.host.equals(host)) {
         return resolved.addresses;
@@ -279,7 +276,7 @@ public class ExtendedConnectionOperator implements HttpClientConnectionOperator 
     if (field == null) {
       builder.append("<unspecified>");
     } else {
-      builder.append(field.toString());
+      builder.append(field);
     }
   }
 

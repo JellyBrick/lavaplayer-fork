@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
-public final class CombinedIpBlock extends IpBlock {
+public final class CombinedIpBlock extends IpBlock<InetAddress> {
 
   private static final Random random = new Random();
 
-  private final Class type;
-  private final List<IpBlock> ipBlocks;
+  private final Class<?> type;
+  private final List<IpBlock<?>> ipBlocks;
   private final BigInteger size;
   private final int[] hitProbability;
   private final ReentrantLock lock;
 
-  public CombinedIpBlock(final List<IpBlock> ipBlocks) {
+  public CombinedIpBlock(final List<IpBlock<?>> ipBlocks) {
     if (ipBlocks.size() == 0)
       throw new IllegalArgumentException("Ip Blocks list size must be greater than zero");
     this.type = ipBlocks.get(0).getType();
@@ -29,7 +29,7 @@ public final class CombinedIpBlock extends IpBlock {
 
     // Cache size of all blocks
     BigInteger count = BigInteger.ZERO;
-    for (final IpBlock ipBlock : ipBlocks) {
+    for (final IpBlock<?> ipBlock : ipBlocks) {
       count = count.add(ipBlock.getSize());
     }
     this.size = count;
@@ -41,7 +41,7 @@ public final class CombinedIpBlock extends IpBlock {
     final BigDecimal size = new BigDecimal(this.size);
     final BigInteger sizeMultiplicator = BigInteger.valueOf(Integer.MAX_VALUE); // 100% target = Integer.MAX_VALUE
     for (int i = 0; i < ipBlocks.size(); i++) {
-      final IpBlock ipBlock = ipBlocks.get(i);
+      final IpBlock<?> ipBlock = ipBlocks.get(i);
       final BigInteger calcSize = ipBlock.getSize().multiply(sizeMultiplicator);
       final BigDecimal probability = new BigDecimal(calcSize).divide(size, BigDecimal.ROUND_HALF_UP);
       this.hitProbability[i] = probability.intValue();
@@ -71,7 +71,7 @@ public final class CombinedIpBlock extends IpBlock {
     while (index.compareTo(BigInteger.ZERO) > 0) {
       if (ipBlocks.size() <= blockIndex)
         break;
-      final IpBlock ipBlock = ipBlocks.get(blockIndex);
+      final IpBlock<?> ipBlock = ipBlocks.get(blockIndex);
       if (ipBlock.getSize().compareTo(index) > 0)
         return ipBlock.getAddressAtIndex(index);
       index = index.subtract(ipBlock.getSize());
@@ -101,7 +101,7 @@ public final class CombinedIpBlock extends IpBlock {
     int maskBits = bits.length;
     try {
       lock.lockInterruptibly();
-      for (final IpBlock ipBlock : ipBlocks) {
+      for (final IpBlock<?> ipBlock : ipBlocks) {
         final int blockMaskBits = ipBlock.getMaskBits();
         final int bitsAtIndex = bits[blockMaskBits - 1];
         bits[blockMaskBits - 1] = bitsAtIndex + 1;

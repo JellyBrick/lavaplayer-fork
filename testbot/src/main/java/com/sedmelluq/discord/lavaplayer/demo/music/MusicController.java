@@ -26,11 +26,11 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
-import net.iharder.Base64;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,7 +90,7 @@ public class MusicController implements BotController {
 
     outputStream.finish();
 
-    message.getChannel().sendMessage(Base64.encodeBytes(baos.toByteArray())).queue();
+    message.getChannel().sendMessage(Base64.getEncoder().encodeToString(baos.toByteArray())).queue();
   }
 
   @BotCommandHandler
@@ -98,7 +98,7 @@ public class MusicController implements BotController {
     outputChannel.set((TextChannel) message.getChannel());
     connectToFirstVoiceChannel(guild.getAudioManager());
 
-    byte[] bytes = Base64.decode(content);
+    byte[] bytes = Base64.getDecoder().decode(content);
 
     MessageInput inputStream = new MessageInput(new ByteArrayInputStream(bytes));
     DecodedTrackHolder holder;
@@ -167,16 +167,12 @@ public class MusicController implements BotController {
 
   @BotCommandHandler
   private void forward(Message message, int duration) {
-    forPlayingTrack(track -> {
-      track.setPosition(track.getPosition() + duration);
-    });
+    forPlayingTrack(track -> track.setPosition(track.getPosition() + duration));
   }
 
   @BotCommandHandler
   private void back(Message message, int duration) {
-    forPlayingTrack(track -> {
-      track.setPosition(Math.max(0, track.getPosition() - duration));
-    });
+    forPlayingTrack(track -> track.setPosition(Math.max(0, track.getPosition() - duration)));
   }
 
   @BotCommandHandler
@@ -191,39 +187,27 @@ public class MusicController implements BotController {
 
   @BotCommandHandler
   private void duration(Message message) {
-    forPlayingTrack(track -> {
-      message.getChannel().sendMessage("Duration is " + track.getDuration()).queue();
-    });
+    forPlayingTrack(track -> message.getChannel().sendMessage("Duration is " + track.getDuration()).queue());
   }
 
   @BotCommandHandler
   private void seek(Message message, long position) {
-    forPlayingTrack(track -> {
-      track.setPosition(position);
-    });
+    forPlayingTrack(track -> track.setPosition(position));
   }
 
   @BotCommandHandler
   private void pos(Message message) {
-    forPlayingTrack(track -> {
-      message.getChannel().sendMessage("Position is " + track.getPosition()).queue();
-    });
+    forPlayingTrack(track -> message.getChannel().sendMessage("Position is " + track.getPosition()).queue());
   }
 
   @BotCommandHandler
   private void marker(final Message message, long position, final String text) {
-    forPlayingTrack(track -> {
-      track.setMarker(new TrackMarker(position, state -> {
-        message.getChannel().sendMessage("Trigger [" + text + "] cause [" + state.name() + "]").queue();
-      }));
-    });
+    forPlayingTrack(track -> track.setMarker(new TrackMarker(position, state -> message.getChannel().sendMessage("Trigger [" + text + "] cause [" + state.name() + "]").queue())));
   }
 
   @BotCommandHandler
   private void unmark(Message message) {
-    forPlayingTrack(track -> {
-      track.setMarker(null);
-    });
+    forPlayingTrack(track -> track.setMarker(null));
   }
 
   @BotCommandHandler
@@ -426,7 +410,7 @@ public class MusicController implements BotController {
     }
   }
 
-  private final class FixedDispatcher implements MessageDispatcher {
+  private static final class FixedDispatcher implements MessageDispatcher {
     private final TextChannel channel;
 
     private FixedDispatcher(TextChannel channel) {

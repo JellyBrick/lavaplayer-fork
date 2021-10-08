@@ -30,7 +30,7 @@ public final class RotatingIpRoutePlanner extends AbstractRoutePlanner {
   /**
    * @param ipBlocks the block to perform balancing over.
    */
-  public RotatingIpRoutePlanner(final List<IpBlock> ipBlocks) {
+  public RotatingIpRoutePlanner(final List<IpBlock<?>> ipBlocks) {
     this(ipBlocks, i -> true);
   }
 
@@ -38,7 +38,7 @@ public final class RotatingIpRoutePlanner extends AbstractRoutePlanner {
    * @param ipBlocks  the block to perform balancing over.
    * @param ipFilter function to filter out certain IP addresses picked from the IP block, causing another random to be chosen.
    */
-  public RotatingIpRoutePlanner(final List<IpBlock> ipBlocks, final Predicate<InetAddress> ipFilter) {
+  public RotatingIpRoutePlanner(final List<IpBlock<?>> ipBlocks, final Predicate<InetAddress> ipFilter) {
     this(ipBlocks, ipFilter, true);
   }
 
@@ -47,7 +47,7 @@ public final class RotatingIpRoutePlanner extends AbstractRoutePlanner {
    * @param ipFilter            function to filter out certain IP addresses picked from the IP block, causing another random to be chosen.
    * @param handleSearchFailure whether a search 429 should trigger the ip as failing
    */
-  public RotatingIpRoutePlanner(final List<IpBlock> ipBlocks, final Predicate<InetAddress> ipFilter, final boolean handleSearchFailure) {
+  public RotatingIpRoutePlanner(final List<IpBlock<?>> ipBlocks, final Predicate<InetAddress> ipFilter, final boolean handleSearchFailure) {
     super(ipBlocks, handleSearchFailure);
     this.ipFilter = ipFilter;
     this.next = new AtomicBoolean(false);
@@ -117,7 +117,7 @@ public final class RotatingIpRoutePlanner extends AbstractRoutePlanner {
   @Override
   protected void onAddressFailure(final InetAddress address) {
     if (lastFailingAddress != null && lastFailingAddress.toString().equals(address.toString())) {
-      log.warn("Address {} was already failing, not triggering next()", address.toString());
+      log.warn("Address {} was already failing, not triggering next()", address);
       return;
     }
     lastFailingAddress = address;

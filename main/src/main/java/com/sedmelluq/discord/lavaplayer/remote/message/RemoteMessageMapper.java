@@ -75,7 +75,6 @@ public class RemoteMessageMapper {
    * @param message The message to encode
    * @throws IOException When an IO error occurs
    */
-  @SuppressWarnings("unchecked")
   public void encode(DataOutputStream output, RemoteMessage message) throws IOException {
     RemoteMessageType type = encodingMap.get(message.getClass());
 

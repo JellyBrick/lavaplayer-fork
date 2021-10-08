@@ -92,15 +92,13 @@ public class MpegFileLoader {
   }
 
   private void parseMetadata(MpegSectionInfo udta) throws IOException {
-    reader.in(udta).handleVersioned("meta", meta -> {
-      reader.in(meta).handle("ilst", ilst -> {
-        MpegSectionInfo entry;
+    reader.in(udta).handleVersioned("meta", meta -> reader.in(meta).handle("ilst", ilst -> {
+      MpegSectionInfo entry;
 
-        while ((entry = reader.nextChild(ilst)) != null) {
-          parseMetadataEntry(entry);
-        }
-      }).run();
-    }).run();
+      while ((entry = reader.nextChild(ilst)) != null) {
+        parseMetadataEntry(entry);
+      }
+    }).run()).run();
   }
 
   private void parseMetadataEntry(MpegSectionInfo entry) throws IOException {
@@ -129,11 +127,11 @@ public class MpegFileLoader {
   }
 
   private static String getMetadataName(String code) {
-    switch (code.toLowerCase()) {
-      case "\u00a9art": return "Artist";
-      case "\u00a9nam": return "Title";
-      default: return null;
-    }
+    return switch (code.toLowerCase()) {
+      case "\u00a9art" -> "Artist";
+      case "\u00a9nam" -> "Title";
+      default -> null;
+    };
   }
 
   private MpegParseStopChecker getRootStopChecker(final AtomicBoolean movieBoxSeen) {
@@ -171,22 +169,18 @@ public class MpegFileLoader {
       reader.data.skipBytes(tkhd.version == 1 ? 16 : 8);
 
       trackInfo.setTrackId(reader.data.readInt());
-    }).handle("mdia", mdia -> {
-      reader.in(mdia).handleVersioned("hdlr", hdlr -> {
-        reader.data.skipBytes(4);
+    }).handle("mdia", mdia -> reader.in(mdia).handleVersioned("hdlr", hdlr -> {
+      reader.data.skipBytes(4);
 
-        trackInfo.setHandler(reader.readFourCC());
-      }).handleVersioned("mdhd", mdhd ->
-          standardFileReader.readMediaHeaders(mdhd, trackInfo.getTrackId())
-      ).handle("minf", minf -> {
-        reader.in(minf).handle("stbl", stbl -> {
-          MpegReader.Chain chain = reader.in(stbl);
-          parseTrackCodecInfo(chain, trackInfo);
-          standardFileReader.attachSampleTableParsers(chain, trackInfo.getTrackId());
-          chain.run();
-        }).run();
-      }).run();
-    }).run();
+      trackInfo.setHandler(reader.readFourCC());
+    }).handleVersioned("mdhd", mdhd ->
+        standardFileReader.readMediaHeaders(mdhd, trackInfo.getTrackId())
+    ).handle("minf", minf -> reader.in(minf).handle("stbl", stbl -> {
+        MpegReader.Chain chain = reader.in(stbl);
+        parseTrackCodecInfo(chain, trackInfo);
+        standardFileReader.attachSampleTableParsers(chain, trackInfo.getTrackId());
+        chain.run();
+      }).run()).run()).run();
 
     tracks.add(trackInfo.build());
   }

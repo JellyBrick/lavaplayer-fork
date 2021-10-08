@@ -115,10 +115,7 @@ public class Mp3TrackProvider implements AudioTrackInfoProvider {
    */
   public void provideFrames() throws InterruptedException {
     try {
-      while (true) {
-        if (!frameReader.fillFrameBuffer()) {
-          break;
-        }
+      while (frameReader.fillFrameBuffer()) {
 
         inputBuffer.clear();
         inputBuffer.put(frameBuffer, 0, frameReader.getFrameSize());
@@ -271,18 +268,13 @@ public class Mp3TrackProvider implements AudioTrackInfoProvider {
     boolean shortTerminator = data.length > 0 && data[data.length - 1] == 0;
     boolean wideTerminator = data.length > 1 && data[data.length - 2] == 0 && shortTerminator;
 
-    switch (encoding) {
-      case 0:
-        return new String(data, 0, size - (shortTerminator ? 2 : 1), "ISO-8859-1");
-      case 1:
-        return new String(data, 0, size - (wideTerminator ? 3 : 1), "UTF-16");
-      case 2:
-        return new String(data, 0, size - (wideTerminator ? 3 : 1), "UTF-16BE");
-      case 3:
-        return new String(data, 0, size - (shortTerminator ? 2 : 1), "UTF-8");
-      default:
-        return null;
-    }
+    return switch (encoding) {
+      case 0 -> new String(data, 0, size - (shortTerminator ? 2 : 1), StandardCharsets.ISO_8859_1);
+      case 1 -> new String(data, 0, size - (wideTerminator ? 3 : 1), StandardCharsets.UTF_16);
+      case 2 -> new String(data, 0, size - (wideTerminator ? 3 : 1), StandardCharsets.UTF_16BE);
+      case 3 -> new String(data, 0, size - (shortTerminator ? 2 : 1), StandardCharsets.UTF_8);
+      default -> null;
+    };
   }
 
   private String readId3v22TagName() throws IOException {

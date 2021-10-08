@@ -98,15 +98,9 @@ public class MutableMatroskaBlock implements MatroskaBlock {
     setFrameCount(frameCount);
 
     switch (laceType) {
-      case 1:
-        parseXiphLaceSizes(reader, element);
-        break;
-      case 2:
-        parseFixedLaceSizes(reader, element);
-        break;
-      case 3:
-      default:
-        parseEbmlLaceSizes(reader, element);
+      case 1 -> parseXiphLaceSizes(reader, element);
+      case 2 -> parseFixedLaceSizes(reader, element);
+      default -> parseEbmlLaceSizes(reader, element);
     }
   }
 

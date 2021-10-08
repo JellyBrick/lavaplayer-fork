@@ -22,7 +22,7 @@ public final class NanoIpRoutePlanner extends AbstractRoutePlanner {
   private final BigInteger startTime;
   private final int maskBits;
 
-  public NanoIpRoutePlanner(final List<IpBlock> ipBlocks, final boolean handleSearchFailure) {
+  public NanoIpRoutePlanner(final List<IpBlock<?>> ipBlocks, final boolean handleSearchFailure) {
     super(ipBlocks, handleSearchFailure);
     if (ipBlock.getSize().compareTo(Ipv6Block.BLOCK64_IPS) < 0)
       throw new IllegalArgumentException("Nano IP Route planner requires an IPv6Block which is greater or equal to a /64");

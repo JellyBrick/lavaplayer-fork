@@ -72,14 +72,10 @@ public class ResamplingPcmAudioFilter implements FloatPcmAudioFilter {
   }
 
   private static SampleRateConverter.ResamplingType getResamplingType(AudioConfiguration.ResamplingQuality quality) {
-    switch (quality) {
-      case HIGH:
-        return SampleRateConverter.ResamplingType.SINC_MEDIUM_QUALITY;
-      case MEDIUM:
-        return SampleRateConverter.ResamplingType.SINC_FASTEST;
-      case LOW:
-      default:
-        return SampleRateConverter.ResamplingType.LINEAR;
-    }
+      return switch (quality) {
+          case HIGH -> SampleRateConverter.ResamplingType.SINC_MEDIUM_QUALITY;
+          case MEDIUM -> SampleRateConverter.ResamplingType.SINC_FASTEST;
+          default -> SampleRateConverter.ResamplingType.LINEAR;
+      };
   }
 }

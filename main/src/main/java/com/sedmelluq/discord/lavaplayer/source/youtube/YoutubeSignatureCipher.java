@@ -18,23 +18,17 @@ public class YoutubeSignatureCipher {
     StringBuilder builder = new StringBuilder(text);
 
     for (YoutubeCipherOperation operation : operations) {
-      switch (operation.type) {
-        case SWAP:
-          int position = operation.parameter % text.length();
-          char temp = builder.charAt(0);
-          builder.setCharAt(0, builder.charAt(position));
-          builder.setCharAt(position, temp);
-          break;
-        case REVERSE:
-          builder.reverse();
-          break;
-        case SLICE:
-        case SPLICE:
-          builder.delete(0, operation.parameter);
-          break;
-        default:
-          throw new IllegalStateException("All branches should be covered");
-      }
+        switch (operation.type) {
+            case SWAP -> {
+                int position = operation.parameter % text.length();
+                char temp = builder.charAt(0);
+                builder.setCharAt(0, builder.charAt(position));
+                builder.setCharAt(position, temp);
+            }
+            case REVERSE -> builder.reverse();
+            case SLICE, SPLICE -> builder.delete(0, operation.parameter);
+            default -> throw new IllegalStateException("All branches should be covered");
+        }
     }
 
     return builder.toString();

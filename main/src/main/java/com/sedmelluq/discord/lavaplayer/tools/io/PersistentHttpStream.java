@@ -192,9 +192,7 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
 
     try {
       long result = currentContent.skip(n);
-      if (result >= 0) {
-        position += result;
-      }
+      position += result;
       return result;
     } catch (IOException e) {
       handleNetworkException(e, attemptReconnect);

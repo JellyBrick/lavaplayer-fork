@@ -52,7 +52,7 @@ public class SoundCloudAudioSourceManager implements AudioSourceManager, HttpCon
   private static final String LIKED_USER_URN_REGEX = "\"urn\":\"soundcloud:users:([0-9]+)\",\"username\":\"([^\"]+)\"";
   private static final String SEARCH_PREFIX = "scsearch";
   private static final String SEARCH_PREFIX_DEFAULT = "scsearch:";
-  private static final String SEARCH_REGEX = SEARCH_PREFIX + "\\[([0-9]{1,9}),([0-9]{1,9})\\]:\\s*(.*)\\s*";
+  private static final String SEARCH_REGEX = SEARCH_PREFIX + "\\[([0-9]{1,9}),([0-9]{1,9})]:\\s*(.*)\\s*";
 
   private static final Pattern mobileUrlPattern = Pattern.compile(MOBILE_URL_REGEX);
   private static final Pattern trackUrlPattern = Pattern.compile(TRACK_URL_REGEX);

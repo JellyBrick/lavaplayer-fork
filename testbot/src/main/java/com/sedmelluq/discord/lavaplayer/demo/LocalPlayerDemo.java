@@ -25,9 +25,7 @@ public class LocalPlayerDemo {
 
     AudioPlayer player = manager.createPlayer();
 
-    manager.loadItem("ytsearch: epic soundtracks", new FunctionalResultHandler(null, playlist -> {
-      player.playTrack(playlist.getTracks().get(0));
-    }, null, null));
+    manager.loadItem("ytsearch: epic soundtracks", new FunctionalResultHandler(null, playlist -> player.playTrack(playlist.getTracks().get(0)), null, null));
 
     AudioDataFormat format = manager.getConfiguration().getOutputFormat();
     AudioInputStream stream = AudioPlayerInputStream.createStream(player, format, 10000L, false);

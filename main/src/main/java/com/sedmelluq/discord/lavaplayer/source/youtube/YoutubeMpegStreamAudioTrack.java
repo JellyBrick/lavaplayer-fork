@@ -53,9 +53,7 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
 
   @Override
   public void process(LocalAudioTrackExecutor localExecutor) {
-    localExecutor.executeProcessingLoop(() -> {
-      execute(localExecutor);
-    }, null);
+    localExecutor.executeProcessingLoop(() -> execute(localExecutor), null);
   }
 
   private void execute(LocalAudioTrackExecutor localExecutor) throws InterruptedException {

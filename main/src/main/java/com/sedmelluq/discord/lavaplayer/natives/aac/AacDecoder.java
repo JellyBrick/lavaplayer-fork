@@ -60,7 +60,7 @@ public class AacDecoder extends NativeResourceHolder {
 
     long buffer = 0;
     for (int i = 0; i < config.length; i++) {
-      buffer |= config[i] << (i << 3);
+      buffer |= (long) config[i] << (i << 3);
     }
 
     configureRaw(buffer);
@@ -106,22 +106,22 @@ public class AacDecoder extends NativeResourceHolder {
   }
 
   private static int getFrequencyIndex(int frequency) {
-    switch (frequency) {
-      case 96000: return 0;
-      case 88200: return 1;
-      case 64000: return 2;
-      case 48000: return 3;
-      case 44100: return 4;
-      case 32000: return 5;
-      case 24000: return 6;
-      case 22050: return 7;
-      case 16000: return 8;
-      case 12000: return 9;
-      case 11025: return 10;
-      case 8000: return 11;
-      case 7350: return 12;
-      default: return 15;
-    }
+    return switch (frequency) {
+      case 96000 -> 0;
+      case 88200 -> 1;
+      case 64000 -> 2;
+      case 48000 -> 3;
+      case 44100 -> 4;
+      case 32000 -> 5;
+      case 24000 -> 6;
+      case 22050 -> 7;
+      case 16000 -> 8;
+      case 12000 -> 9;
+      case 11025 -> 10;
+      case 8000 -> 11;
+      case 7350 -> 12;
+      default -> 15;
+    };
   }
 
   /**

@@ -32,23 +32,23 @@ import java.util.stream.Stream;
 public class YoutubeSignatureCipherManager implements YoutubeSignatureResolver {
   private static final Logger log = LoggerFactory.getLogger(YoutubeSignatureCipherManager.class);
 
-  private static final String VARIABLE_PART = "[a-zA-Z_\\$][a-zA-Z_0-9]*";
-  private static final String VARIABLE_PART_DEFINE = "\\\"?" + VARIABLE_PART + "\\\"?";
-  private static final String BEFORE_ACCESS = "(?:\\[\\\"|\\.)";
-  private static final String AFTER_ACCESS = "(?:\\\"\\]|)";
+  private static final String VARIABLE_PART = "[a-zA-Z_$][a-zA-Z_0-9]*";
+  private static final String VARIABLE_PART_DEFINE = "\"?" + VARIABLE_PART + "\"?";
+  private static final String BEFORE_ACCESS = "\\[\"|\\.";
+  private static final String AFTER_ACCESS = "\"]|";
   private static final String VARIABLE_PART_ACCESS = BEFORE_ACCESS + VARIABLE_PART + AFTER_ACCESS;
-  private static final String REVERSE_PART = ":function\\(a\\)\\{(?:return )?a\\.reverse\\(\\)\\}";
-  private static final String SLICE_PART = ":function\\(a,b\\)\\{return a\\.slice\\(b\\)\\}";
-  private static final String SPLICE_PART = ":function\\(a,b\\)\\{a\\.splice\\(0,b\\)\\}";
+  private static final String REVERSE_PART = ":function\\(a\\)\\{(?:return )?a\\.reverse\\(\\)}";
+  private static final String SLICE_PART = ":function\\(a,b\\)\\{return a\\.slice\\(b\\)}";
+  private static final String SPLICE_PART = ":function\\(a,b\\)\\{a\\.splice\\(0,b\\)}";
   private static final String SWAP_PART = ":function\\(a,b\\)\\{" +
-      "var c=a\\[0\\];a\\[0\\]=a\\[b%a\\.length\\];a\\[b(?:%a.length|)\\]=c(?:;return a)?\\}";
+      "var c=a\\[0];a\\[0]=a\\[b%a\\.length];a\\[b(?:%a.length|)]=c(?:;return a)?}";
 
   private static final Pattern functionPattern = Pattern.compile("" +
       "function(?: " + VARIABLE_PART + ")?\\(a\\)\\{" +
       "a=a\\.split\\(\"\"\\);\\s*" +
       "((?:(?:a=)?" + VARIABLE_PART + VARIABLE_PART_ACCESS + "\\(a,\\d+\\);)+)" +
       "return a\\.join\\(\"\"\\)" +
-      "\\}"
+      "}"
   );
 
   private static final Pattern actionsPattern = Pattern.compile("" +
@@ -57,10 +57,10 @@ public class YoutubeSignatureCipherManager implements YoutubeSignatureResolver {
       VARIABLE_PART_DEFINE + SLICE_PART + "|" +
       VARIABLE_PART_DEFINE + SPLICE_PART + "|" +
       VARIABLE_PART_DEFINE + SWAP_PART +
-      "),?\\n?)+)\\};"
+      "),?\\n?)+)};"
   );
 
-  private static final String PATTERN_PREFIX = "(?:^|,)\\\"?(" + VARIABLE_PART + ")\\\"?";
+  private static final String PATTERN_PREFIX = "(?:^|,)\"?(" + VARIABLE_PART + ")\"?";
 
   private static final Pattern reversePattern = Pattern.compile(PATTERN_PREFIX + REVERSE_PART, Pattern.MULTILINE);
   private static final Pattern slicePattern = Pattern.compile(PATTERN_PREFIX + SLICE_PART, Pattern.MULTILINE);
@@ -68,7 +68,7 @@ public class YoutubeSignatureCipherManager implements YoutubeSignatureResolver {
   private static final Pattern swapPattern = Pattern.compile(PATTERN_PREFIX + SWAP_PART, Pattern.MULTILINE);
 
   private static final Pattern signatureExtraction = Pattern.compile("/s/([^/]+)/");
-  private static final Pattern timestampPattern = Pattern.compile("(signatureTimestamp|sts)[\\:](\\d+)");
+  private static final Pattern timestampPattern = Pattern.compile("(signatureTimestamp|sts)[:](\\d+)");
 
   private final ConcurrentMap<String, YoutubeSignatureCipher> cipherCache;
   private final Set<String> dumpedScriptUrls;
@@ -175,7 +175,7 @@ public class YoutubeSignatureCipherManager implements YoutubeSignatureResolver {
 
     try {
       Path path = Files.createTempFile("lavaplayer-yt-player-script", ".js");
-      Files.write(path, script.getBytes(StandardCharsets.UTF_8));
+      Files.writeString(path, script);
 
       log.error("Problematic YouTube player script {} detected (issue detected with script: {}). Dumped to {}.",
           sourceUrl, issue, path.toAbsolutePath());

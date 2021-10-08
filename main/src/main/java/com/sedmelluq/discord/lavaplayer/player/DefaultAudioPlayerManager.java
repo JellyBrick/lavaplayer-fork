@@ -84,7 +84,7 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
 
   // Configuration
   private volatile long trackStuckThreshold;
-  private volatile AudioConfiguration configuration;
+  private final AudioConfiguration configuration;
   private final AtomicLong cleanupThreshold;
   private volatile int frameBufferDuration;
   private volatile boolean useSeekGhosting;

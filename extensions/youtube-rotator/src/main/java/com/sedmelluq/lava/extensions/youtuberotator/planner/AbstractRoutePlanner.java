@@ -34,12 +34,12 @@ public abstract class AbstractRoutePlanner implements HttpRoutePlanner {
   private static final long FAILING_TIME = TimeUnit.DAYS.toMillis(7);
   private static final Logger log = LoggerFactory.getLogger(AbstractRoutePlanner.class);
 
-  protected final IpBlock ipBlock;
+  protected final IpBlock<?> ipBlock;
   protected final Map<String, Long> failingAddresses;
   private final SchemePortResolver schemePortResolver;
   private final boolean handleSearchFailure;
 
-  protected AbstractRoutePlanner(final List<IpBlock> ipBlocks, final boolean handleSearchFailure) {
+  protected AbstractRoutePlanner(final List<IpBlock<?>> ipBlocks, final boolean handleSearchFailure) {
     this.ipBlock = new CombinedIpBlock(ipBlocks);
     this.failingAddresses = new HashMap<>();
     this.schemePortResolver = DefaultSchemePortResolver.INSTANCE;
@@ -47,7 +47,7 @@ public abstract class AbstractRoutePlanner implements HttpRoutePlanner {
     log.info("Active RoutePlanner: {} using total of {} ips", getClass().getCanonicalName(), this.ipBlock.getSize());
   }
 
-  public IpBlock getIpBlock() {
+  public IpBlock<?> getIpBlock() {
     return ipBlock;
   }
 

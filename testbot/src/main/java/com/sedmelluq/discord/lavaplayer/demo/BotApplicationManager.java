@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,17 +114,17 @@ public class BotApplicationManager extends ListenerAdapter {
 
       @Override
       public void commandWrongParameterType(Message message, String name, String usage, int index, String value, Class<?> expectedType) {
-        event.getTextChannel().sendMessage("Wrong argument type for command").queue();;
+        event.getTextChannel().sendMessage("Wrong argument type for command").queue();
       }
 
       @Override
       public void commandRestricted(Message message, String name) {
-        event.getTextChannel().sendMessage("Command not permitted").queue();;
+        event.getTextChannel().sendMessage("Command not permitted").queue();
       }
 
       @Override
       public void commandException(Message message, String name, Throwable throwable) {
-        event.getTextChannel().sendMessage("Command threw an exception").queue();;
+        event.getTextChannel().sendMessage("Command threw an exception").queue();
 
         log.error("Command with content {} threw an exception.", message.getContentDisplay(), throwable);
       }
@@ -131,7 +132,7 @@ public class BotApplicationManager extends ListenerAdapter {
   }
 
   @Override
-  public void onGuildLeave(GuildLeaveEvent event) {
+  public void onGuildLeave(@NotNull GuildLeaveEvent event) {
     // do stuff
   }
 }

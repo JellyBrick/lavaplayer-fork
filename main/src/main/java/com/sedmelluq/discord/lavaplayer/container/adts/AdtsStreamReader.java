@@ -120,9 +120,7 @@ public class AdtsStreamReader {
   }
 
   private static void copyEndToBeginning(byte[] buffer, int chunk) {
-    for (int i = 0; i < chunk; i++) {
-      buffer[i] = buffer[buffer.length - chunk + i];
-    }
+    if (chunk >= 0) System.arraycopy(buffer, buffer.length - chunk, buffer, 0, chunk);
   }
 
   private static AdtsPacketHeader readHeader(BitBufferReader reader) {
