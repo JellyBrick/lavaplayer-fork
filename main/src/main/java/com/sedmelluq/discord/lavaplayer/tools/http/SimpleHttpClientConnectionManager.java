@@ -19,7 +19,7 @@ import org.apache.http.protocol.HttpContext;
 public class SimpleHttpClientConnectionManager implements HttpClientConnectionManager {
   private final HttpClientConnectionOperator connectionOperator;
   private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connectionFactory;
-  private volatile SocketConfig socketConfig = SocketConfig.DEFAULT;
+  private volatile SocketConfig socketConfig = SocketConfig.custom().setTcpNoDelay(false).setSoReuseAddress(true).build();
   private volatile ConnectionConfig connectionConfig = ConnectionConfig.DEFAULT;
 
   public SimpleHttpClientConnectionManager(

@@ -8,14 +8,16 @@ allprojects {
   repositories {
     mavenCentral()
     jcenter()
+    maven { url "https://jitpack.io" }
+    maven { url "https://m2.dv8tion.net/releases" }
     mavenLocal()
   }
 
   apply plugin: 'java'
   apply plugin: 'idea'
 
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
+  sourceCompatibility = 16
+  targetCompatibility = 16
 }
 
 ext.slf4jVersion = '1.7.25'

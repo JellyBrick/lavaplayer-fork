@@ -7,7 +7,7 @@ ext.moduleName = 'lavaplayer-ext-format-xm'
 version = '0.1.0'
 
 dependencies {
-  compile project(':main')
+  implementation project(':main')
   implementation files('./lib/ibxm-a74.jar')
 }
 

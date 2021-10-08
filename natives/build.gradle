@@ -10,12 +10,12 @@ apply plugin: 'de.undercouch.download'
 
 apply from: 'natives.gradle'
 
-ext.opusVersion = '1.3'
-ext.mpg123Version = '1.25.10'
-ext.oggVersion = '1.3.3'
-ext.vorbisVersion = '1.3.6'
-ext.sampleRateVersion = '0.1.9'
-ext.fdkAacVersion = '2.0.0'
+ext.opusVersion = '1.3.1'
+ext.mpg123Version = '1.29.0'
+ext.oggVersion = '1.3.5'
+ext.vorbisVersion = '1.3.7'
+ext.sampleRateVersion = '0.2.2'
+ext.fdkAacVersion = '2.0.2'
 
 task load { doLast {
   if (!file("$projectDir/samplerate/src").exists()) {
@@ -23,12 +23,12 @@ task load { doLast {
     def unpackPath = "$buildDir/tmp"
 
     download {
-      src "http://www.mega-nerd.com/SRC/libsamplerate-${sampleRateVersion}.tar.gz"
+      src "https://github.com/libsndfile/libsamplerate/releases/download/${sampleRateVersion}/libsamplerate-${sampleRateVersion}.tar.xz"
       dest downloadPath
     }
 
     copy {
-      from tarTree(resources.gzip(downloadPath))
+      from tarTree(resources.bzip2(downloadPath))
       into unpackPath
     }
 
@@ -179,7 +179,7 @@ def buildOpusOnLinux(force) {
   def present = file("${projectDir}/libs/64/libopus.a").exists()
 
   if (force || !present) {
-    def flags = "-fPIC -O3 -fdata-sections -ffunction-sections"
+    def flags = "-fPIC -Ofast -fdata-sections -ffunction-sections -fomit-frame-pointer"
     def process = ["./configure", "--enable-static", "--with-cpu=x64-64", "--with-pic", "CFLAGS=${flags}", "CXXFLAGS=${flags}", "LDFLAGS=${flags}"].
         execute(null as String[], file("$projectDir/opus/opus-${opusVersion}"))
 
@@ -219,7 +219,7 @@ def buildMpg123OnLinux(force) {
   if (force || !present) {
     replaceAutotoolsVersion("$projectDir/mp3/mpg123-${mpg123Version}", '1.15.1')
 
-    def flags = "-fPIC -O3 -fdata-sections -ffunction-sections"
+    def flags = "-fPIC -Ofast -fdata-sections -ffunction-sections -fomit-frame-pointer"
     def process = ['./configure', '--enable-static', '--with-cpu=x86-64', '--with-pic', "CFLAGS=$flags", "CXXFLAGS=$flags"].
         execute(null as String[], file("$projectDir/mp3/mpg123-${mpg123Version}"))
 

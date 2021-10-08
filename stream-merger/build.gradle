@@ -9,7 +9,7 @@ ext.moduleName = 'lavaplayer-stream-merger'
 version = '0.1.0'
 
 dependencies {
-  compile project(':main')
+  implementation project(':main')
 }
 
 task sourceJar(type: Jar) {

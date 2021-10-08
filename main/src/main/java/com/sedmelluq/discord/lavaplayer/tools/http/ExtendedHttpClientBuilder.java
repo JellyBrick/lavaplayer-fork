@@ -12,6 +12,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpClientConnectionOperator;
 import org.apache.http.conn.HttpConnectionFactory;
@@ -118,6 +119,7 @@ public class ExtendedHttpClientBuilder extends HttpClientBuilder {
         -1,
         TimeUnit.MILLISECONDS
     );
+    manager.setDefaultSocketConfig(SocketConfig.custom().setTcpNoDelay(false).setSoReuseAddress(true).build());
 
     manager.setMaxTotal(3000);
     manager.setDefaultMaxPerRoute(1500);
