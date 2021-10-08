@@ -89,7 +89,7 @@ public class Mp3FrameReader {
 
   private boolean parseFrameAt(int scanOffset) {
     if (scanOffset >= HEADER_SIZE && (frameSize = Mp3Decoder.getFrameSize(scanBuffer, scanOffset - HEADER_SIZE)) > 0) {
-      System.arraycopy(scanBuffer, scanOffset - 4, frameBuffer, 0, HEADER_SIZE);
+      System.arraycopy(scanBuffer, scanOffset - HEADER_SIZE, frameBuffer, 0, HEADER_SIZE);
 
       frameBufferPosition = HEADER_SIZE;
       return true;
