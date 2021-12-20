@@ -12,8 +12,16 @@ public class PBJUtils {
 
     public static String getYouTubeThumbnail(JsonBrowser videoData, String videoId) {
         List<JsonBrowser> thumbnails = videoData.get("thumbnail").get("thumbnails").values();
-        if (!thumbnails.isEmpty()) return thumbnails.get(thumbnails.size() - 1).get("url").text();
-        return String.format("https://i.ytimg.com/vi_webp/%s/maxresdefault.webp", videoId);
+        if (!thumbnails.isEmpty()) {
+            String lastThumbnail = thumbnails.get(thumbnails.size() - 1).get("url").text();
+
+            if (lastThumbnail.contains("maxresdefault")) {
+                return lastThumbnail;
+            } else {
+                return String.format("https://i.ytimg.com/vi/%s/mqdefault.jpg", videoId);
+            }
+        }
+        return String.format("https://i.ytimg.com/vi/%s/mqdefault.jpg", videoId);
     }
 
     public static String getSoundCloudThumbnail(JsonBrowser trackData) {

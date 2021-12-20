@@ -20,6 +20,7 @@ import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.P
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_URL;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_URL;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.WATCH_URL_PREFIX;
 import static com.sedmelluq.discord.lavaplayer.tools.ExceptionTools.throwWithDebugInfo;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
@@ -73,6 +74,11 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
 
     if (status == InfoStatus.DOES_NOT_EXIST) {
       return null;
+    }
+
+    if (status == InfoStatus.REQUIRES_LOGIN) {
+      throw new FriendlyException("This video requires age verification.", SUSPICIOUS,
+              new IllegalStateException("You did not configured right YoutubeHttpContextFilter, check https://github.com/Walkyst/lavaplayer-fork/issues/18 issue for fixing this."));
     }
 
     if (status == InfoStatus.CONTENT_CHECK_REQUIRED) {
@@ -168,7 +174,7 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
   }
 
   protected JsonBrowser loadTrackInfoFromMainPage(HttpInterface httpInterface, String videoId) throws IOException {
-    String url = "https://www.youtube.com/watch?v=" + videoId + "&pbj=1&hl=en";
+    String url = WATCH_URL_PREFIX + videoId + "&pbj=1&hl=en";
 
     try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(url))) {
       return processResponse(response);
