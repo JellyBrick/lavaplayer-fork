@@ -2,6 +2,7 @@ package com.sedmelluq.lava.extensions.youtuberotator.tools.ip;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.List;
@@ -43,7 +44,7 @@ public final class CombinedIpBlock extends IpBlock<InetAddress> {
     for (int i = 0; i < ipBlocks.size(); i++) {
       final IpBlock<?> ipBlock = ipBlocks.get(i);
       final BigInteger calcSize = ipBlock.getSize().multiply(sizeMultiplicator);
-      final BigDecimal probability = new BigDecimal(calcSize).divide(size, BigDecimal.ROUND_HALF_UP);
+      final BigDecimal probability = new BigDecimal(calcSize).divide(size, RoundingMode.HALF_UP);
       this.hitProbability[i] = probability.intValue();
     }
   }

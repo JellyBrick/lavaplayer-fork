@@ -11,6 +11,6 @@ dependencies {
 }
 
 tasks.bootJar {
-  mainClassName = "com.sedmelluq.discord.lavaplayer.node.NodeApplication"
+  mainClass.set("com.sedmelluq.discord.lavaplayer.node.NodeApplication")
   archiveClassifier.set("boot")
 }

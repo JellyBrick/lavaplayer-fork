@@ -77,19 +77,10 @@ public class FlacFrameReader {
 
   private static void applyChannelDelta(ChannelDelta channelDelta, int[][] rawSampleBuffers, int sampleCount) {
     switch (channelDelta) {
-      case LEFT_SIDE:
-        applyLeftSideDelta(rawSampleBuffers, sampleCount);
-        break;
-      case RIGHT_SIDE:
-        applyRightSideDelta(rawSampleBuffers, sampleCount);
-        break;
-      case MID_SIDE:
-        applyMidDelta(rawSampleBuffers, sampleCount);
-        break;
-      case NONE:
-      default:
-        break;
-    }
+      case LEFT_SIDE -> applyLeftSideDelta(rawSampleBuffers, sampleCount);
+      case RIGHT_SIDE -> applyRightSideDelta(rawSampleBuffers, sampleCount);
+      case MID_SIDE -> applyMidDelta(rawSampleBuffers, sampleCount);
+    } //case NONE, default: do nothing
   }
 
   private static void applyLeftSideDelta(int[][] rawSampleBuffers, int sampleCount) {
