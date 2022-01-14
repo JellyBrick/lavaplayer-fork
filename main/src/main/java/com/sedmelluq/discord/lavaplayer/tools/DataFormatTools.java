@@ -12,7 +12,6 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import org.apache.http.client.utils.URLEncodedUtils;
 
@@ -78,10 +77,6 @@ public class DataFormatTools {
     return null;
   }
 
-  public static boolean isNullOrEmpty(String text) {
-    return text == null || text.isEmpty();
-  }
-
   /**
    * Converts name value pairs to a map, with the last entry for each name being present.
    * @param pairs Name value pairs to convert
@@ -91,18 +86,6 @@ public class DataFormatTools {
     Map<String, String> map = new HashMap<>();
     for (NameValuePair pair : pairs) {
       map.put(pair.getName(), pair.getValue());
-    }
-    return map;
-  }
-
-  public static Map<String, String> convertToMapLayout(String response) {
-    Map<String, String> map = new HashMap<>();
-    StringTokenizer st = new StringTokenizer(response, "\n\r");
-    while (st.hasMoreTokens()) {
-      String[] keyValue = st.nextToken().split("=", 2);
-      if (keyValue.length >= 2) {
-        map.put(keyValue[0], keyValue[1]);
-      }
     }
     return map;
   }
