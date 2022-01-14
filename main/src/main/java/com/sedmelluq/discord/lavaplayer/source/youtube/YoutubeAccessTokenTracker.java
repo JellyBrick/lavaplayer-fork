@@ -51,7 +51,6 @@ public class YoutubeAccessTokenTracker {
   private long lastMasterTokenUpdate;
   private long lastAccessTokenUpdate;
   private long accessTokenRefreshInterval = DEFAULT_ACCESS_TOKEN_REFRESH_INTERVAL;
-  private boolean loggedAgeRestrictionsWarning = false;
 
   public YoutubeAccessTokenTracker(String email, String password) {
     this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
@@ -65,14 +64,9 @@ public class YoutubeAccessTokenTracker {
   public void updateMasterToken() {
     synchronized (tokenLock) {
       if (DataFormatTools.isNullOrEmpty(email) && DataFormatTools.isNullOrEmpty(password)) {
-        if (!loggedAgeRestrictionsWarning) {
-          log.warn("YouTube auth tokens can't be retrieved because email and password is not set in YoutubeAudioSourceManager, age restricted videos will throw exceptions");
-          loggedAgeRestrictionsWarning = true;
-        }
+        log.warn("YouTube auth tokens can't be retrieved because email and password is not set in YoutubeAudioSourceManager, age restricted videos will throw exceptions");
         return;
       }
-
-      if (loggedAgeRestrictionsWarning) return;
 
       long now = System.currentTimeMillis();
       if (now - lastMasterTokenUpdate < MASTER_TOKEN_REFRESH_INTERVAL) {
@@ -98,16 +92,7 @@ public class YoutubeAccessTokenTracker {
   public void updateAccessToken() {
     synchronized (tokenLock) {
       if (DataFormatTools.isNullOrEmpty(email) && DataFormatTools.isNullOrEmpty(password)) {
-        if (!loggedAgeRestrictionsWarning) {
-          log.warn("YouTube auth tokens can't be retrieved because email and password is not set in YoutubeAudioSourceManager, age restricted videos will throw exceptions");
-          loggedAgeRestrictionsWarning = true;
-        }
-        return;
-      }
-
-      getMasterToken();
-
-      if (DataFormatTools.isNullOrEmpty(masterToken) && loggedAgeRestrictionsWarning) {
+        log.warn("YouTube auth tokens can't be retrieved because email and password is not set in YoutubeAudioSourceManager, age restricted videos will throw exceptions");
         return;
       }
 
@@ -152,6 +137,14 @@ public class YoutubeAccessTokenTracker {
     }
   }
 
+  public String getEmail() {
+    return email;
+  }
+
+  public String getPassword() {
+    return email;
+  }
+
   public boolean isTokenFetchContext(HttpClientContext context) {
     return context.getAttribute(TOKEN_FETCH_CONTEXT_ATTRIBUTE) == Boolean.TRUE;
   }
@@ -181,10 +174,6 @@ public class YoutubeAccessTokenTracker {
       String responseText = EntityUtils.toString(masterTokenResponse.getEntity(), UTF_8);
       JsonBrowser jsonBrowser = JsonBrowser.parse(responseText);
 
-      if (masterTokenResponse.getStatusLine().getStatusCode() == 400) {
-        loggedAgeRestrictionsWarning = true;
-      }
-
       HttpClientTools.assertSuccessWithContent(masterTokenResponse, "login account response [" + jsonBrowser.get("exception").safeText() + "]");
 
       String services = jsonBrowser.get("services").text();
@@ -204,7 +193,7 @@ public class YoutubeAccessTokenTracker {
     params.add(new BasicNameValuePair("client_sig", "24bb24c05e47e0aefa68a58a766179d9b613a600"));
     params.add(new BasicNameValuePair("google_play_services_version", "214516005"));
     params.add(new BasicNameValuePair("service", "oauth2:https://www.googleapis.com/auth/youtube"));
-    params.add(new BasicNameValuePair("Token", masterToken));
+    params.add(new BasicNameValuePair("Token", getMasterToken()));
     HttpPost post = new HttpPost(buildUri(AUTH_URL, params));
 
     try (CloseableHttpResponse response = httpInterface.execute(post)) {

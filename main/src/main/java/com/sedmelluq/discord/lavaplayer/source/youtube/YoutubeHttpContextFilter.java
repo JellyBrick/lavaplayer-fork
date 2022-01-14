@@ -17,12 +17,7 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
 public class YoutubeHttpContextFilter implements HttpContextFilter {
   private static final String ATTRIBUTE_RESET_RETRY = "isResetRetry";
   private static final HttpContextRetryCounter retryCounter = new HttpContextRetryCounter("yt-token-retry");
-
-  private YoutubeAccessTokenTracker tokenTracker;
-
-  public void setTokenTracker(YoutubeAccessTokenTracker tokenTracker) {
-    this.tokenTracker = tokenTracker;
-  }
+  public static YoutubeAccessTokenTracker tokenTracker;
 
   @Override
   public void onContextOpen(HttpClientContext context) {
@@ -48,16 +43,18 @@ public class YoutubeHttpContextFilter implements HttpContextFilter {
       context.removeAttribute(ATTRIBUTE_RESET_RETRY);
     }
 
-    retryCounter.handleUpdate(context, isRepetition);
+    if (!DataFormatTools.isNullOrEmpty(tokenTracker.getEmail()) && !DataFormatTools.isNullOrEmpty(tokenTracker.getPassword())) {
+      retryCounter.handleUpdate(context, isRepetition);
 
-    if (tokenTracker.isTokenFetchContext(context)) {
-      // Used for fetching access token, let's not recurse.
-      return;
-    }
+      if (tokenTracker.isTokenFetchContext(context)) {
+        // Used for fetching access token, let's not recurse.
+        return;
+      }
 
-    String accessToken = tokenTracker.getAccessToken();
-    if (!DataFormatTools.isNullOrEmpty(accessToken)) {
-      request.setHeader("Authorization", "Bearer " + accessToken);
+      String accessToken = tokenTracker.getAccessToken();
+      if (!DataFormatTools.isNullOrEmpty(accessToken)) {
+        request.setHeader("Authorization", "Bearer " + accessToken);
+      }
     }
   }
 

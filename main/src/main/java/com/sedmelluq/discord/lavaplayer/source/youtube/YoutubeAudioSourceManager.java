@@ -94,9 +94,8 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
   ) {
     httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
     accessTokenTracker = new YoutubeAccessTokenTracker(email, password);
-    YoutubeHttpContextFilter youtubeHttpContextFilter = new YoutubeHttpContextFilter();
-    youtubeHttpContextFilter.setTokenTracker(accessTokenTracker);
-    httpInterfaceManager.setHttpContextFilter(youtubeHttpContextFilter);
+    YoutubeHttpContextFilter.tokenTracker = accessTokenTracker;
+    httpInterfaceManager.setHttpContextFilter(new YoutubeHttpContextFilter());
 
     this.allowSearch = allowSearch;
     this.trackDetailsLoader = trackDetailsLoader;
@@ -169,8 +168,12 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
     ExceptionTools.closeWithWarnings(httpInterfaceManager);
   }
 
-  public YoutubeAccessTokenTracker getAccessTokenTracker() {
-    return accessTokenTracker;
+  public String getMasterAccessToken() {
+    return accessTokenTracker.getMasterToken();
+  }
+
+  public String getAccessToken() {
+    return accessTokenTracker.getAccessToken();
   }
 
   /**
