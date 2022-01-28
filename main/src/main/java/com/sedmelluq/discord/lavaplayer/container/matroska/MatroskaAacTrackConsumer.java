@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.container.matroska.format.MatroskaFileTr
 import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAacTrackConsumer;
 import com.sedmelluq.discord.lavaplayer.natives.aac.AacDecoder;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioProcessingContext;
+import net.sourceforge.jaad.aac.Decoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,9 @@ public class MatroskaAacTrackConsumer implements MatroskaTrackConsumer {
   private static final Logger log = LoggerFactory.getLogger(MpegAacTrackConsumer.class);
 
   private final MatroskaFileTrack track;
-  private final ByteBuffer inputBuffer;
   private final AacPacketRouter packetRouter;
+
+  private ByteBuffer inputBuffer;
 
   /**
    * @param context Configuration and output information for processing
@@ -26,8 +28,7 @@ public class MatroskaAacTrackConsumer implements MatroskaTrackConsumer {
    */
   public MatroskaAacTrackConsumer(AudioProcessingContext context, MatroskaFileTrack track) {
     this.track = track;
-    this.inputBuffer = ByteBuffer.allocateDirect(4096);
-    this.packetRouter = new AacPacketRouter(context, this::configureDecoder);
+    this.packetRouter = new AacPacketRouter(context);
   }
 
   @Override
@@ -53,6 +54,24 @@ public class MatroskaAacTrackConsumer implements MatroskaTrackConsumer {
 
   @Override
   public void consume(ByteBuffer data) throws InterruptedException {
+    if (packetRouter.nativeDecoder == null) {
+      packetRouter.nativeDecoder = new AacDecoder();
+      inputBuffer = ByteBuffer.allocateDirect(4096);
+    }
+
+    if (configureDecoder(packetRouter.nativeDecoder)) {
+      processInput(data);
+    } else {
+      if (packetRouter.embeddedDecoder == null) {
+        packetRouter.embeddedDecoder = Decoder.create(track.codecPrivate);
+        inputBuffer = ByteBuffer.allocate(4096);
+      }
+
+      processInput(data);
+    }
+  }
+
+  private void processInput(ByteBuffer data) throws InterruptedException {
     while (data.hasRemaining()) {
       int chunk = Math.min(data.remaining(), inputBuffer.capacity());
       ByteBuffer chunkBuffer = data.duplicate();
@@ -73,7 +92,7 @@ public class MatroskaAacTrackConsumer implements MatroskaTrackConsumer {
     packetRouter.close();
   }
 
-  private void configureDecoder(AacDecoder decoder) {
-    decoder.configure(track.codecPrivate);
+  private boolean configureDecoder(AacDecoder decoder) {
+    return (decoder.configure(track.codecPrivate) == 0);
   }
 }
