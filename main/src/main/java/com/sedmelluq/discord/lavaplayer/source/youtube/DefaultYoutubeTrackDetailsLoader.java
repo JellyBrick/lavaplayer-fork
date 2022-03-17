@@ -16,9 +16,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.BASE_PAYLOAD;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLIENT_WEB_NAME;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLIENT_WEB_VERSION;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLOSE_BASE_PAYLOAD;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLOSE_PLAYER_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_EMBED_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_URL;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.SCREEN_PART_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_PAYLOAD;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_URL;
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.WATCH_URL_PREFIX;
@@ -78,6 +84,17 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       return null;
     }
 
+    if (status == InfoStatus.PREMIERE_TRAILER) {
+      // Android client gives encoded Base64 response to trailer which is also protobuf so we can't decode it
+      JsonBrowser trackInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, status);
+      return YoutubeTrackJsonData.fromMainResult(trackInfo
+              .get("playabilityStatus")
+              .get("errorScreen")
+              .get("ypcTrailerRenderer")
+              .get("unserializedPlayerResponse")
+      );
+    }
+
     if (status == InfoStatus.NON_EMBEDDABLE) {
       JsonBrowser trackInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, status);
       checkPlayabilityStatus(trackInfo);
@@ -106,29 +123,29 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     } else if ("OK".equals(status)) {
       return InfoStatus.INFO_PRESENT;
     } else if ("ERROR".equals(status)) {
-      String reason = statusBlock.get("reason").text();
+      String errorReason = statusBlock.get("reason").text();
 
-      if ("This video is unavailable".equals(reason)) {
+      if (errorReason.contains("This video is unavailable")) {
         return InfoStatus.DOES_NOT_EXIST;
       } else {
-        throw new FriendlyException(reason, COMMON, null);
+        throw new FriendlyException(errorReason, COMMON, null);
       }
     } else if ("UNPLAYABLE".equals(status)) {
       String unplayableReason = getUnplayableReason(statusBlock);
 
-      if ("Playback on other websites has been disabled by the video owner.".equals(unplayableReason)) {
+      if (unplayableReason.contains("Playback on other websites has been disabled by the video owner")) {
         return InfoStatus.NON_EMBEDDABLE;
       }
 
       throw new FriendlyException(unplayableReason, COMMON, null);
     } else if ("LOGIN_REQUIRED".equals(status)) {
-      String errorReason = statusBlock.get("reason").text();
+      String loginReason = statusBlock.get("reason").text();
 
-      if ("This video is private".equals(errorReason)) {
+      if (loginReason.contains("This video is private")) {
         throw new FriendlyException("This is a private video.", COMMON, null);
       }
 
-      if ("This video may be inappropriate for some users.".equals(errorReason)) {
+      if (loginReason.contains("This video may be inappropriate for some users")) {
         throw new FriendlyException("This video requires age verification.", SUSPICIOUS,
                 new IllegalStateException("You did not set email and password in YoutubeAudioSourceManager."));
       }
@@ -136,6 +153,12 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       return InfoStatus.REQUIRES_LOGIN;
     } else if ("CONTENT_CHECK_REQUIRED".equals(status)) {
       return InfoStatus.CONTENT_CHECK_REQUIRED;
+    } else if ("LIVE_STREAM_OFFLINE".equals(status)) {
+      if (!statusBlock.get("errorScreen").get("ypcTrailerRenderer").isNull()) {
+        return InfoStatus.PREMIERE_TRAILER;
+      }
+
+      throw new FriendlyException(getUnplayableReason(statusBlock), COMMON, null);
     } else {
       throw new FriendlyException("This video cannot be viewed anonymously.", COMMON, null);
     }
@@ -146,6 +169,8 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     REQUIRES_LOGIN,
     DOES_NOT_EXIST,
     CONTENT_CHECK_REQUIRED,
+    LIVE_STREAM_OFFLINE,
+    PREMIERE_TRAILER,
     NON_EMBEDDABLE
   }
 
@@ -178,14 +203,20 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
   ) throws IOException {
     if (cachedPlayerScript == null) fetchScript(videoId, httpInterface);
 
-    YoutubeSignatureCipher playerScriptTimestamp = sourceManager.getSignatureResolver().getCipherKeyAndTimestampFromScript(
+    YoutubeSignatureCipher playerScriptTimestamp = sourceManager.getSignatureResolver().getExtractedScript(
             httpInterface,
             cachedPlayerScript.playerScriptUrl
     );
     HttpPost post = new HttpPost(PLAYER_URL);
     StringEntity payload;
 
-    if (infoStatus == InfoStatus.NON_EMBEDDABLE) {
+    if (infoStatus == InfoStatus.PREMIERE_TRAILER) {
+      payload = new StringEntity(String.format(
+          String.format(
+              BASE_PAYLOAD, CLIENT_WEB_NAME, CLIENT_WEB_VERSION
+          ) + SCREEN_PART_PAYLOAD + CLOSE_BASE_PAYLOAD + CLOSE_PLAYER_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp
+      ), "UTF-8");
+    } else if (infoStatus == InfoStatus.NON_EMBEDDABLE) {
       payload = new StringEntity(String.format(PLAYER_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp), "UTF-8");
     } else {
       payload = new StringEntity(String.format(PLAYER_EMBED_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp), "UTF-8");
