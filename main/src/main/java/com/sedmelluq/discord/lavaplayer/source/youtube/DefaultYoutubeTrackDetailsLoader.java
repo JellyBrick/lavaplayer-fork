@@ -321,6 +321,13 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     }
   }
 
-  protected record CachedPlayerScript(String playerScriptUrl, long timestamp) {
+  protected static class CachedPlayerScript {
+    public final String playerScriptUrl;
+    public final long timestamp;
+
+    public CachedPlayerScript(String playerScriptUrl, long timestamp) {
+      this.playerScriptUrl = playerScriptUrl;
+      this.timestamp = timestamp;
+    }
   }
 }
