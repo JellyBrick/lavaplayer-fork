@@ -7,11 +7,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.mozilla.javascript.engine.RhinoScriptEngineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -90,7 +90,7 @@ public class YoutubeSignatureCipherManager implements YoutubeSignatureResolver {
   public YoutubeSignatureCipherManager() {
     this.cipherCache = new ConcurrentHashMap<>();
     this.dumpedScriptUrls = new HashSet<>();
-    this.scriptEngine = new RhinoScriptEngineFactory().getScriptEngine();
+    this.scriptEngine = new ScriptEngineManager().getEngineByName("graal.js");
     this.cipherLoadLock = new Object();
   }
 
