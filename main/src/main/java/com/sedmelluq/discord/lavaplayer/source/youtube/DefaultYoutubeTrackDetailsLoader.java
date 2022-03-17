@@ -16,18 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.BASE_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLIENT_WEB_NAME;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLIENT_WEB_VERSION;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLOSE_BASE_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.CLOSE_PLAYER_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_EMBED_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.PLAYER_URL;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.SCREEN_PART_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_PAYLOAD;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.VERIFY_AGE_URL;
-import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.WATCH_URL_PREFIX;
+import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeConstants.*;
 import static com.sedmelluq.discord.lavaplayer.tools.ExceptionTools.throwWithDebugInfo;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
@@ -53,10 +42,10 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       boolean requireFormats,
       YoutubeAudioSourceManager sourceManager
   ) throws IOException {
-    JsonBrowser mainInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager);
+    JsonBrowser mainInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, null);
 
     try {
-      YoutubeTrackJsonData initialData = loadBaseResponse(mainInfo, httpInterface, videoId);
+      YoutubeTrackJsonData initialData = loadBaseResponse(mainInfo, httpInterface, videoId, sourceManager);
 
       if (initialData == null) {
         return null;
@@ -74,7 +63,8 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
   protected YoutubeTrackJsonData loadBaseResponse(
       JsonBrowser mainInfo,
       HttpInterface httpInterface,
-      String videoId
+      String videoId,
+      YoutubeAudioSourceManager sourceManager
   ) throws IOException {
     YoutubeTrackJsonData data = YoutubeTrackJsonData.fromMainResult(mainInfo);
     InfoStatus status = checkPlayabilityStatus(data.playerResponse);
@@ -129,7 +119,7 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     } else if ("ERROR".equals(status)) {
       String errorReason = statusBlock.get("reason").text();
 
-      if ("Video unavailable".equals(reason)) {
+      if ("Video unavailable".equals(errorReason)) {
         return InfoStatus.DOES_NOT_EXIST;
       } else {
         throw new FriendlyException(errorReason, COMMON, null);
@@ -154,7 +144,7 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
         throw new FriendlyException("This is a private video.", COMMON, null);
       }
 
-      if ("This video may be inappropriate for some users.".equals(errorReason)) {
+      if ("This video may be inappropriate for some users.".equals(loginReason)) {
         throw new FriendlyException("This video requires age verification.", SUSPICIOUS,
                 new IllegalStateException("You did not set email and password in YoutubeAudioSourceManager."));
       }
@@ -204,7 +194,12 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     return unplayableReason;
   }
 
-  protected JsonBrowser loadTrackInfoFromInnertube(HttpInterface httpInterface, String videoId, YoutubeAudioSourceManager sourceManager) throws IOException {
+  protected JsonBrowser loadTrackInfoFromInnertube(
+          HttpInterface httpInterface,
+          String videoId,
+          YoutubeAudioSourceManager sourceManager,
+          InfoStatus infoStatus
+  ) throws IOException {
     if (cachedPlayerScript == null) fetchScript(videoId, httpInterface);
 
     YoutubeSignatureCipher playerScriptTimestamp = sourceManager.getSignatureResolver().getExtractedScript(
@@ -326,13 +321,6 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     }
   }
 
-  protected static class CachedPlayerScript {
-    public final String playerScriptUrl;
-    public final long timestamp;
-
-    public CachedPlayerScript(String playerScriptUrl, long timestamp) {
-      this.playerScriptUrl = playerScriptUrl;
-      this.timestamp = timestamp;
-    }
+  protected record CachedPlayerScript(String playerScriptUrl, long timestamp) {
   }
 }
