@@ -80,7 +80,9 @@ public class LegacyDashMpdFormatsExtractor implements YoutubeTrackFormatExtracto
             ContentType.parse(contentType),
             Long.parseLong(representation.attr("bandwidth")),
             Long.parseLong(contentLength),
+            2,
             url,
+            "",
             null,
             DEFAULT_SIGNATURE_KEY
         ));
