@@ -67,39 +67,43 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       YoutubeAudioSourceManager sourceManager
   ) throws IOException {
     YoutubeTrackJsonData data = YoutubeTrackJsonData.fromMainResult(mainInfo);
-    InfoStatus status = checkPlayabilityStatus(data.playerResponse, false);
+    InfoStatus status = checkPlayabilityStatus(data.playerResponse);
 
     if (status == InfoStatus.DOES_NOT_EXIST) {
       return null;
     }
 
     if (status == InfoStatus.PREMIERE_TRAILER) {
+      // Android client gives encoded Base64 response to trailer which is also protobuf so we can't decode it
       JsonBrowser trackInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, status);
-      data = YoutubeTrackJsonData.fromMainResult(trackInfo
-          .get("playabilityStatus")
-          .get("errorScreen")
-          .get("ypcTrailerRenderer")
-          .get("unserializedPlayerResponse")
+      return YoutubeTrackJsonData.fromMainResult(trackInfo
+              .get("playabilityStatus")
+              .get("errorScreen")
+              .get("ypcTrailerRenderer")
+              .get("unserializedPlayerResponse")
       );
-      status = checkPlayabilityStatus(data.playerResponse, true);
-    }
-
-    if (status == InfoStatus.REQUIRES_LOGIN) {
-      JsonBrowser trackInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, status);
-      data = YoutubeTrackJsonData.fromMainResult(trackInfo);
-      status = checkPlayabilityStatus(data.playerResponse, true);
     }
 
     if (status == InfoStatus.NON_EMBEDDABLE) {
       JsonBrowser trackInfo = loadTrackInfoFromInnertube(httpInterface, videoId, sourceManager, status);
-      data = YoutubeTrackJsonData.fromMainResult(trackInfo);
-      checkPlayabilityStatus(data.playerResponse, true);
+      checkPlayabilityStatus(trackInfo);
+      return YoutubeTrackJsonData.fromMainResult(trackInfo);
+    }
+
+    if (status == InfoStatus.REQUIRES_LOGIN) {
+      throw new FriendlyException("This video requires age verification.", SUSPICIOUS,
+              new IllegalStateException("You did not configured right YoutubeHttpContextFilter, check https://github.com/Walkyst/lavaplayer-fork/issues/18 issue for fixing this."));
+    }
+
+    if (status == InfoStatus.CONTENT_CHECK_REQUIRED) {
+      JsonBrowser trackInfo = loadTrackInfoWithContentVerify(httpInterface, videoId);
+      return YoutubeTrackJsonData.fromMainResult(trackInfo);
     }
 
     return data;
   }
 
-  protected InfoStatus checkPlayabilityStatus(JsonBrowser playerResponse, boolean secondCheck) {
+  protected InfoStatus checkPlayabilityStatus(JsonBrowser playerResponse) {
     JsonBrowser statusBlock = playerResponse.get("playabilityStatus");
 
     if (statusBlock.isNull()) {
@@ -140,14 +144,14 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
         throw new FriendlyException("This is a private video.", COMMON, null);
       }
 
-      if ("This video may be inappropriate for some users.".equals(loginReason) && secondCheck) {
+      if ("This video may be inappropriate for some users.".equals(loginReason)) {
         throw new FriendlyException("This video requires age verification.", SUSPICIOUS,
                 new IllegalStateException("You did not set email and password in YoutubeAudioSourceManager."));
       }
 
       return InfoStatus.REQUIRES_LOGIN;
     } else if ("CONTENT_CHECK_REQUIRED".equals(status)) {
-      throw new FriendlyException(getUnplayableReason(statusBlock), COMMON, null);
+      return InfoStatus.CONTENT_CHECK_REQUIRED;
     } else if ("LIVE_STREAM_OFFLINE".equals(status)) {
       if (!statusBlock.get("errorScreen").get("ypcTrailerRenderer").isNull()) {
         return InfoStatus.PREMIERE_TRAILER;
@@ -206,41 +210,70 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     StringEntity payload;
 
     if (infoStatus == InfoStatus.PREMIERE_TRAILER) {
-      // Android client gives encoded Base64 response to trailer which is also protobuf so we can't decode it
       payload = new StringEntity(String.format(
           String.format(
               BASE_PAYLOAD, CLIENT_WEB_NAME, CLIENT_WEB_VERSION
           ) + SCREEN_PART_PAYLOAD + CLOSE_BASE_PAYLOAD + CLOSE_PLAYER_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp
       ), "UTF-8");
     } else if (infoStatus == InfoStatus.NON_EMBEDDABLE) {
-      // Used when age restriction bypass failed, if we have valid auth then most likely this request will be successful
       payload = new StringEntity(String.format(PLAYER_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp), "UTF-8");
-    } else if (infoStatus == InfoStatus.REQUIRES_LOGIN) {
-      // Age restriction bypass
-      payload = new StringEntity(String.format(
-          String.format(
-              BASE_PAYLOAD, CLIENT_TVHTML5_NAME, CLIENT_TVHTML5_VERSION
-          ) + SCREEN_PART_PAYLOAD + CLOSE_BASE_PAYLOAD + CLOSE_PLAYER_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp
-      ), "UTF-8");
     } else {
-      // Default payload from what we start trying to get required data
       payload = new StringEntity(String.format(PLAYER_EMBED_PAYLOAD, videoId, playerScriptTimestamp.scriptTimestamp), "UTF-8");
     }
 
     post.setEntity(payload);
     try (CloseableHttpResponse response = httpInterface.execute(post)) {
-      HttpClientTools.assertSuccessWithContent(response, "video page response");
+      return processResponse(response);
+    }
+  }
 
-      String responseText = EntityUtils.toString(response.getEntity(), UTF_8);
+  protected JsonBrowser loadTrackInfoFromMainPage(HttpInterface httpInterface, String videoId) throws IOException {
+    String url = WATCH_URL_PREFIX + videoId + "&pbj=1&hl=en";
 
-      try {
-        return JsonBrowser.parse(responseText);
-      } catch (FriendlyException e) {
-        throw e;
-      } catch (Exception e) {
-        throw new FriendlyException("Received unexpected response from YouTube.", SUSPICIOUS,
-            new RuntimeException("Failed to parse: " + responseText, e));
+    try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(url))) {
+      return processResponse(response);
+    }
+  }
+
+  protected JsonBrowser loadTrackInfoWithContentVerify(HttpInterface httpInterface, String videoId) throws IOException {
+    HttpPost post = new HttpPost(VERIFY_AGE_URL);
+    StringEntity payload = new StringEntity(String.format(VERIFY_AGE_PAYLOAD, "/watch?v=" + videoId), "UTF-8");
+    post.setEntity(payload);
+    try (CloseableHttpResponse response = httpInterface.execute(post)) {
+      HttpClientTools.assertSuccessWithContent(response, "content verify response");
+
+      String json = EntityUtils.toString(response.getEntity(), UTF_8);
+      String fetchedContentVerifiedLink = JsonBrowser.parse(json)
+              .get("actions")
+              .index(0)
+              .get("navigateAction")
+              .get("endpoint")
+              .get("urlEndpoint")
+              .get("url")
+              .text();
+      if (fetchedContentVerifiedLink != null) {
+        return loadTrackInfoFromMainPage(httpInterface, fetchedContentVerifiedLink.substring(9));
       }
+
+      log.error("Did not receive requested content verified link on track {} response: {}", videoId, json);
+    }
+
+    throw new FriendlyException("Track requires content verification.", SUSPICIOUS,
+            new IllegalStateException("Expected response is not present."));
+  }
+
+  protected JsonBrowser processResponse(CloseableHttpResponse response) throws IOException {
+    HttpClientTools.assertSuccessWithContent(response, "video page response");
+
+    String responseText = EntityUtils.toString(response.getEntity(), UTF_8);
+
+    try {
+      return JsonBrowser.parse(responseText);
+    } catch (FriendlyException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new FriendlyException("Received unexpected response from YouTube.", SUSPICIOUS,
+              new RuntimeException("Failed to parse: " + responseText, e));
     }
   }
 
