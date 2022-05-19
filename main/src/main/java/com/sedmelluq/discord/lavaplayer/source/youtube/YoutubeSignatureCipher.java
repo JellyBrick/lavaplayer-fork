@@ -11,8 +11,9 @@ import java.util.List;
  */
 public class YoutubeSignatureCipher {
   private final List<YoutubeCipherOperation> operations = new ArrayList<>();
-  private String nFunction = "";
+  String nFunction = "";
   String scriptTimestamp = "";
+  String rawScript = "";
 
   /**
    * @param text Text to apply the cipher on
@@ -43,15 +44,11 @@ public class YoutubeSignatureCipher {
    * @param scriptEngine JavaScript engine to execute function
    * @return The result of the n parameter transformation
    */
-  public String transform(String text, ScriptEngine scriptEngine) {
+  public String transform(String text, ScriptEngine scriptEngine) throws ScriptException, NoSuchMethodException {
     String transformed;
 
-    try {
-      scriptEngine.eval("n=" + nFunction);
-      transformed = (String) ((Invocable) scriptEngine).invokeFunction("n", text);
-    } catch (ScriptException | NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
+    scriptEngine.eval("n=" + nFunction);
+    transformed = (String) ((Invocable) scriptEngine).invokeFunction("n", text);
 
     return transformed;
   }
@@ -89,5 +86,12 @@ public class YoutubeSignatureCipher {
    */
   public String getScriptTimestamp() {
     return scriptTimestamp;
+  }
+
+  /**
+   * @param script Raw script
+   */
+  public void setRawScript(String script) {
+    rawScript = script;
   }
 }
