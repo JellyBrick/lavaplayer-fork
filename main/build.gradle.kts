@@ -9,7 +9,7 @@ version = "1.3.98"
 
 dependencies {
   api("com.sedmelluq:lava-common:1.1.2")
-  implementation("com.github.walkyst:lavaplayer-natives-fork:1.0.0")
+  implementation("com.github.walkyst:lavaplayer-natives-fork:1.0.1")
   implementation("com.github.walkyst.JAADec-fork:jaadec-ext-aac:0.1.3")
   implementation("org.graalvm.js:js:22.0.0.2")
   implementation("org.graalvm.js:js-scriptengine:22.0.0.2")
