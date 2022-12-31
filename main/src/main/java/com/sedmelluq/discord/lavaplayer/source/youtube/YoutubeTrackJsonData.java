@@ -32,8 +32,8 @@ public class YoutubeTrackJsonData {
       JsonBrowser playerResponse = NULL_BROWSER;
 
       List<JsonBrowser> json = result.values();
-      JsonBrowser lastElement = json.get(result.values().size() - 1);
-      if (!lastElement.get("page").isNull()) {
+      JsonBrowser lastElement;
+      if (!json.isEmpty() && !(lastElement = json.get(json.size() - 1)).get("page").isNull()) {
         for (JsonBrowser child : result.values()) {
           if (child.isMap()) {
             if (playerInfo.isNull()) {
