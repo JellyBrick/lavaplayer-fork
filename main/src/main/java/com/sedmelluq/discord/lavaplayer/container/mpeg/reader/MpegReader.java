@@ -57,7 +57,13 @@ public class MpegReader {
     }
 
     long length = Integer.toUnsignedLong(lengthField);
-    return new MpegSectionInfo(offset, length, readFourCC());
+    String type = readFourCC();
+
+    if (length == 1) {
+      length = data.readLong();
+    }
+
+    return new MpegSectionInfo(offset, length, type);
   }
 
   /**
