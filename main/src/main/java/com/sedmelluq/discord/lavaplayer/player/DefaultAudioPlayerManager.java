@@ -34,6 +34,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -183,6 +184,11 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
   }
 
   @Override
+  public List<AudioSourceManager> getSourceManagers() {
+    return Collections.unmodifiableList(sourceManagers);
+  }
+
+  @Override
   public Future<Void> loadItem(final AudioReference reference, final AudioLoadResultHandler resultHandler) {
     try {
       return trackInfoExecutorService.submit(createItemLoader(reference, resultHandler));
@@ -276,7 +282,7 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
         input.readUTF(),
         input.readBoolean(),
         version >= 2 ? DataFormatTools.readNullableText(input) : null,
-        version >= 2 ? DataFormatTools.readNullableText(input) : null,
+        version >= 3 ? DataFormatTools.readNullableText(input) : null,
         version >= 3 ? DataFormatTools.readNullableText(input) : null
     );
     AudioTrack track = decodeTrackDetails(trackInfo, input);
