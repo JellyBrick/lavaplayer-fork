@@ -125,10 +125,18 @@ public class ExtendedHttpClientBuilder extends HttpClientBuilder {
     PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager(
         operator,
         connectionFactory,
-        -1,
+        2000,
         TimeUnit.MILLISECONDS
     );
-    manager.setDefaultSocketConfig(SocketConfig.custom().setTcpNoDelay(false).setSoReuseAddress(true).build());
+    manager.closeIdleConnections(2000, TimeUnit.MILLISECONDS);
+    manager.setDefaultSocketConfig(
+            SocketConfig.custom()
+                    .setSoKeepAlive(true)
+                    .setSoLinger(200)
+                    .setTcpNoDelay(false)
+                    .setSoTimeout(10000)
+                    .build()
+    );
 
     manager.setMaxTotal(3000);
     manager.setDefaultMaxPerRoute(1500);

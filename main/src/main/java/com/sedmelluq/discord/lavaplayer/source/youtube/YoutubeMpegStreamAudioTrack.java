@@ -90,9 +90,7 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
       SequenceInfo sequenceInfo = extractAbsoluteSequenceFromEvent(file.getLastEventMessage());
       state.globalSequence = sequenceInfo.sequence;
       state.globalSequenceDuration = sequenceInfo.duration;
-
-      updated.complete(null);
-    } catch (IOException e) {
+    } finally {
       updated.complete(null);
     }
 
@@ -163,7 +161,9 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
 
     log.debug("Segment URL: {}", segmentUrl.toString());
 
-    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(httpInterface, segmentUrl, CONTENT_LENGTH_UNKNOWN)) {
+    YoutubePersistentHttpStream stream = null;
+    try {
+      stream = new YoutubePersistentHttpStream(httpInterface, segmentUrl, CONTENT_LENGTH_UNKNOWN);
       if (stream.checkStatusCode() == HttpStatus.SC_NO_CONTENT || stream.getContentLength() == 0) {
         return false;
       }
@@ -174,11 +174,14 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
       state.redirectUrl = httpInterface.getFinalLocation();
 
       processSegmentStream(stream, localExecutor.getProcessingContext(), state);
-
-      stream.releaseConnection();
     } catch (IOException e) {
       // IOException here usually means that stream is about to end.
       return false;
+    } finally {
+      if (stream != null) {
+        stream.releaseConnection();
+        stream.close();
+      }
     }
 
     return true;

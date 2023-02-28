@@ -239,7 +239,7 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (currentResponse != null) {
       try {
         currentResponse.close();
@@ -248,7 +248,6 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
       }
 
       currentResponse = null;
-      currentContent = null;
     }
   }
 
@@ -264,7 +263,6 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
       }
     }
 
-    currentResponse = null;
     currentContent = null;
   }
 
