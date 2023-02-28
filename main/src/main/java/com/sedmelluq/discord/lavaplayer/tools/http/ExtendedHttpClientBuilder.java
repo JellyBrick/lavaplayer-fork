@@ -128,7 +128,6 @@ public class ExtendedHttpClientBuilder extends HttpClientBuilder {
         2000,
         TimeUnit.MILLISECONDS
     );
-    manager.closeIdleConnections(2000, TimeUnit.MILLISECONDS);
     manager.setDefaultSocketConfig(
             SocketConfig.custom()
                     .setSoKeepAlive(true)
@@ -140,6 +139,7 @@ public class ExtendedHttpClientBuilder extends HttpClientBuilder {
 
     manager.setMaxTotal(3000);
     manager.setDefaultMaxPerRoute(1500);
+    (new IdleConnectionMonitorThread(manager)).start();
 
     return manager;
   }
@@ -180,6 +180,43 @@ public class ExtendedHttpClientBuilder extends HttpClientBuilder {
 
       return false;
     }
+  }
+
+  private static class IdleConnectionMonitorThread extends Thread {
+
+    private static final Logger logger = LoggerFactory.getLogger(IdleConnectionMonitorThread.class);
+    private final HttpClientConnectionManager connMgr;
+    private volatile boolean shutdown;
+
+    public IdleConnectionMonitorThread(HttpClientConnectionManager connMgr) {
+      super();
+      logger.debug("Inside IdleConnectionMonitorThread");
+      this.connMgr = connMgr;
+      logger.debug("Connection manager assigned");
+    }
+
+    @Override
+    public void run() {
+      try {
+        while (!shutdown) {
+          synchronized (this) {
+            wait(250);
+            connMgr.closeExpiredConnections();
+            connMgr.closeIdleConnections(250, TimeUnit.MILLISECONDS);
+          }
+        }
+      } catch (InterruptedException ex) {
+        // terminate
+      }
+    }
+
+    public void shutdown() {
+      shutdown = true;
+      synchronized (this) {
+        notifyAll();
+      }
+    }
+
   }
 
   private static class IcyHttpLineParser extends BasicLineParser {
