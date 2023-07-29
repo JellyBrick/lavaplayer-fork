@@ -23,13 +23,16 @@ public class YoutubePersistentHttpStream extends PersistentHttpStream {
 
   private long rangeEnd;
 
+  private final YoutubeAccessTokenTracker tokenTracker;
+
   /**
    * @param httpInterface The HTTP interface to use for requests
    * @param contentUrl The URL of the resource
    * @param contentLength The length of the resource in bytes
    */
-  public YoutubePersistentHttpStream(HttpInterface httpInterface, URI contentUrl, long contentLength) {
+  public YoutubePersistentHttpStream(HttpInterface httpInterface, URI contentUrl, long contentLength, YoutubeAccessTokenTracker tokenTracker) {
     super(httpInterface, contentUrl, contentLength);
+    this.tokenTracker = tokenTracker;
   }
 
   @Override
@@ -42,6 +45,20 @@ public class YoutubePersistentHttpStream extends PersistentHttpStream {
       return rangeUrl;
     } else {
       return contentUrl;
+    }
+  }
+
+  @Override
+  protected boolean attemptConnect(boolean skipStatusCheck, boolean retryOnServerError) throws IOException {
+    try {
+      return super.attemptConnect(skipStatusCheck, retryOnServerError);
+    } catch (HttpException e) {
+      if (e.getStatusCode() == 403 && retryOnServerError) {
+        tokenTracker.updateVisitorId();
+        return super.attemptConnect(skipStatusCheck, retryOnServerError);
+      } else {
+        throw e;
+      }
     }
   }
 

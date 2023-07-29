@@ -41,17 +41,19 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
 
   private final HttpInterface httpInterface;
   private final TrackState state;
+  private final YoutubeAccessTokenTracker accessTokenTracker;
 
   /**
    * @param trackInfo Track info
    * @param httpInterface HTTP interface to use for loading segments
    * @param signedUrl URI of the base stream with signature resolved
    */
-  public YoutubeMpegStreamAudioTrack(AudioTrackInfo trackInfo, HttpInterface httpInterface, URI signedUrl) {
+  public YoutubeMpegStreamAudioTrack(AudioTrackInfo trackInfo, HttpInterface httpInterface, URI signedUrl, YoutubeAccessTokenTracker accessTokenTracker) {
     super(trackInfo, null);
 
     this.httpInterface = httpInterface;
     this.state = new TrackState(signedUrl);
+    this.accessTokenTracker = accessTokenTracker;
 
     // YouTube does not return a segment until it is ready, this might trigger a connect timeout otherwise.
     httpInterface.getContext().setRequestConfig(streamingRequestConfig);
@@ -83,7 +85,12 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
   private CompletableFuture<Void> updateGlobalSequence() {
     CompletableFuture<Void> updated = new CompletableFuture<>();
 
-    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(httpInterface, state.initialUrl, CONTENT_LENGTH_UNKNOWN)) {
+    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(
+            httpInterface,
+            state.initialUrl,
+            CONTENT_LENGTH_UNKNOWN,
+            this.accessTokenTracker
+    )) {
       MpegFileLoader file = new MpegFileLoader(stream);
       file.parseHeaders();
 
@@ -163,7 +170,7 @@ public class YoutubeMpegStreamAudioTrack extends MpegAudioTrack {
 
     YoutubePersistentHttpStream stream = null;
     try {
-      stream = new YoutubePersistentHttpStream(httpInterface, segmentUrl, CONTENT_LENGTH_UNKNOWN);
+      stream = new YoutubePersistentHttpStream(httpInterface, segmentUrl, CONTENT_LENGTH_UNKNOWN, accessTokenTracker);
       if (stream.checkStatusCode() == HttpStatus.SC_NO_CONTENT || stream.getContentLength() == 0) {
         return false;
       }

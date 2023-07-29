@@ -80,12 +80,25 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
     return true;
   }
 
-  private static boolean validateStatusCode(HttpResponse response, boolean returnOnServerError) {
+  protected static class HttpException extends RuntimeException {
+    private final int statusCode;
+
+    public HttpException(String message, int code) {
+      super(message + ": " + code);
+      this.statusCode = code;
+    }
+
+    public int getStatusCode() {
+      return statusCode;
+    }
+  }
+
+  protected static boolean validateStatusCode(HttpResponse response, boolean returnOnServerError) {
     int statusCode = response.getStatusLine().getStatusCode();
     if (returnOnServerError && statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
       return false;
     } else if (!isSuccessWithContent(statusCode)) {
-      throw new RuntimeException("Not success status code: " + statusCode);
+      throw new HttpException("Not success status code", statusCode);
     }
     return true;
   }
@@ -117,7 +130,7 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
     return new BufferedInputStream(response.getEntity().getContent());
   }
 
-  private boolean attemptConnect(boolean skipStatusCheck, boolean retryOnServerError) throws IOException {
+  protected boolean attemptConnect(boolean skipStatusCheck, boolean retryOnServerError) throws IOException {
     currentResponse = httpInterface.execute(getConnectRequest());
     lastStatusCode = currentResponse.getStatusLine().getStatusCode();
 

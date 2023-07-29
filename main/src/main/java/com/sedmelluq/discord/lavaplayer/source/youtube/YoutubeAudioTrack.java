@@ -20,7 +20,7 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
 import static com.sedmelluq.discord.lavaplayer.tools.Units.CONTENT_LENGTH_UNKNOWN;
 
 /**
- * Audio track that handles processing Youtube videos as audio tracks.
+ * Audio track that handles processing YouTube videos as audio tracks.
  */
 public class YoutubeAudioTrack extends DelegatedAudioTrack {
   private static final Logger log = LoggerFactory.getLogger(YoutubeAudioTrack.class);
@@ -58,7 +58,12 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
   }
 
   private void processStatic(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface, FormatWithUrl format) throws Exception {
-    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(httpInterface, format.signedUrl, format.details.getContentLength())) {
+    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(
+            httpInterface,
+            format.signedUrl,
+            format.details.getContentLength(),
+            sourceManager.getAccessTokenTracker()
+    )) {
       if (format.details.getType().getMimeType().endsWith("/webm")) {
         processDelegate(new MatroskaAudioTrack(trackInfo, stream), localExecutor);
       } else {
@@ -72,7 +77,7 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
       throw new FriendlyException("YouTube WebM streams are currently not supported.", COMMON, null);
     } else {
       try (HttpInterface streamingInterface = sourceManager.getHttpInterface()) {
-        processDelegate(new YoutubeMpegStreamAudioTrack(trackInfo, streamingInterface, format.signedUrl), localExecutor);
+        processDelegate(new YoutubeMpegStreamAudioTrack(trackInfo, streamingInterface, format.signedUrl, sourceManager.getAccessTokenTracker()), localExecutor);
       }
     }
   }
