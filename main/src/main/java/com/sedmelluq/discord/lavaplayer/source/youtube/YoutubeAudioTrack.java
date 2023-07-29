@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
@@ -12,6 +13,7 @@ import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import java.net.URI;
 import java.util.List;
 import java.util.StringJoiner;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,10 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
 
   @Override
   public void process(LocalAudioTrackExecutor localExecutor) throws Exception {
+    process(localExecutor, true);
+  }
+
+  public void process(LocalAudioTrackExecutor localExecutor, boolean retryWhen403) throws Exception {
     try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {
       FormatWithUrl format = loadBestFormatWithUrl(httpInterface);
 
@@ -49,6 +55,16 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
       } else {
         processStatic(localExecutor, httpInterface, format);
       }
+    } catch (PersistentHttpStream.PersistentHttpException e) {
+      if (retryWhen403 && e.getStatusCode() == 403) {
+        YoutubeAccessTokenTracker tracker = sourceManager.getAccessTokenTracker();
+        synchronized (tracker.getTokenLock()) {
+          tracker.updateVisitorId();
+        }
+        process(localExecutor, false);
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -58,12 +74,7 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
   }
 
   private void processStatic(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface, FormatWithUrl format) throws Exception {
-    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(
-            httpInterface,
-            format.signedUrl,
-            format.details.getContentLength(),
-            sourceManager.getAccessTokenTracker()
-    )) {
+    try (YoutubePersistentHttpStream stream = new YoutubePersistentHttpStream(httpInterface, format.signedUrl, format.details.getContentLength())) {
       if (format.details.getType().getMimeType().endsWith("/webm")) {
         processDelegate(new MatroskaAudioTrack(trackInfo, stream), localExecutor);
       } else {
@@ -77,7 +88,7 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
       throw new FriendlyException("YouTube WebM streams are currently not supported.", COMMON, null);
     } else {
       try (HttpInterface streamingInterface = sourceManager.getHttpInterface()) {
-        processDelegate(new YoutubeMpegStreamAudioTrack(trackInfo, streamingInterface, format.signedUrl, sourceManager.getAccessTokenTracker()), localExecutor);
+        processDelegate(new YoutubeMpegStreamAudioTrack(trackInfo, streamingInterface, format.signedUrl), localExecutor);
       }
     }
   }

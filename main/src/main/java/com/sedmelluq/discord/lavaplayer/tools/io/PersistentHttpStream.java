@@ -80,10 +80,10 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
     return true;
   }
 
-  protected static class HttpException extends RuntimeException {
+  public static class PersistentHttpException extends RuntimeException {
     private final int statusCode;
 
-    public HttpException(String message, int code) {
+    public PersistentHttpException(String message, int code) {
       super(message + ": " + code);
       this.statusCode = code;
     }
@@ -98,7 +98,7 @@ public class PersistentHttpStream extends SeekableInputStream implements AutoClo
     if (returnOnServerError && statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
       return false;
     } else if (!isSuccessWithContent(statusCode)) {
-      throw new HttpException("Not success status code", statusCode);
+      throw new PersistentHttpException("Not success status code", statusCode);
     }
     return true;
   }

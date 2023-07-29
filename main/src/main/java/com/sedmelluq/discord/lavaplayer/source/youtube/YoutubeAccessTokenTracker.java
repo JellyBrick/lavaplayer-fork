@@ -217,6 +217,10 @@ public class YoutubeAccessTokenTracker {
     }
   }
 
+  public Object getTokenLock() {
+    return tokenLock;
+  }
+
   public boolean isTokenFetchContext(HttpClientContext context) {
     return context.getAttribute(TOKEN_FETCH_CONTEXT_ATTRIBUTE) == Boolean.TRUE;
   }
