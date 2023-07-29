@@ -170,14 +170,22 @@ public class YoutubeAccessTokenTracker {
         return visitorId;
       }
 
+      forceUpdateVisitorId(now);
+
+      return visitorId;
+    }
+  }
+
+  public String forceUpdateVisitorId(Long now) {
+    synchronized (tokenLock) {
       lastVisitorIdUpdate = now;
       log.info("Updating YouTube visitor id (current is {}).", visitorId);
 
       try {
         visitorId = fetchVisitorId();
         log.info("Updating YouTube visitor id succeeded, new one is {}, next update will be after {} seconds.",
-            visitorId,
-            TimeUnit.MILLISECONDS.toSeconds(VISITOR_ID_REFRESH_INTERVAL)
+                visitorId,
+                TimeUnit.MILLISECONDS.toSeconds(VISITOR_ID_REFRESH_INTERVAL)
         );
       } catch (Exception e) {
         log.error("YouTube visitor id update failed.", e);

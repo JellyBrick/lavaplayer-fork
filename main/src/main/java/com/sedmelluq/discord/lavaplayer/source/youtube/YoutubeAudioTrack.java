@@ -59,7 +59,7 @@ public class YoutubeAudioTrack extends DelegatedAudioTrack {
       if (retryWhen403 && e.getStatusCode() == 403) {
         YoutubeAccessTokenTracker tracker = sourceManager.getAccessTokenTracker();
         synchronized (tracker.getTokenLock()) {
-          tracker.updateVisitorId();
+          tracker.forceUpdateVisitorId(System.currentTimeMillis());
         }
         process(localExecutor, false);
       } else {
