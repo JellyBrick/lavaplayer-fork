@@ -167,9 +167,8 @@ public class DefaultYoutubePlaylistLoader implements YoutubePlaylistLoader {
       if (!item.get("isPlayable").isNull() && !shortBylineText.isNull()) {
         String videoId = item.get("videoId").text();
         JsonBrowser titleField = item.get("title");
-        String title = Optional.ofNullable(titleField.get("simpleText").text())
-                .orElse(titleField.get("runs").index(0).get("text").text());
-        String author = shortBylineText.get("runs").index(0).get("text").text();
+        String title = titleField.get("simpleText").textOrDefault(titleField.get("runs").index(0).get("text").text());
+        String author = shortBylineText.get("runs").index(0).get("text").textOrDefault("Unknown artist");
         JsonBrowser lengthSeconds = item.get("lengthSeconds");
         long duration = Units.secondsToMillis(lengthSeconds.asLong(Units.DURATION_SEC_UNKNOWN));
 

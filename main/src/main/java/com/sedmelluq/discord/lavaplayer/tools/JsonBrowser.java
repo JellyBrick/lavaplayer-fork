@@ -199,6 +199,10 @@ public class JsonBrowser {
     return null;
   }
 
+  public String textOrDefault(String defaultValue) {
+    String value = text();
+    return value != null ? value : defaultValue;
+  }
   public boolean asBoolean(boolean defaultValue) {
     if (node != null) {
       if (node.isBoolean()) {
@@ -222,6 +226,22 @@ public class JsonBrowser {
       } else if (node.isTextual()) {
         try {
           return Long.parseLong(node.textValue());
+        } catch (NumberFormatException ignored) {
+          // Fall through to default value.
+        }
+      }
+    }
+
+    return defaultValue;
+  }
+
+  public int asInt(int defaultValue) {
+    if (node != null) {
+      if (node.isNumber()) {
+        return node.numberValue().intValue();
+      } else if (node.isTextual()) {
+        try {
+          return Integer.parseInt(node.textValue());
         } catch (NumberFormatException ignored) {
           // Fall through to default value.
         }

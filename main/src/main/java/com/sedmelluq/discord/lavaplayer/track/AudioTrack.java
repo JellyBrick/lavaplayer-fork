@@ -44,9 +44,26 @@ public interface AudioTrack extends AudioItem {
   void setPosition(long position);
 
   /**
+   * Set the track position marker. This will clear all existing markers.
+   *
    * @param marker Track position marker to place
    */
   void setMarker(TrackMarker marker);
+
+  /**
+   * Adds a marker to the track.
+   * Markers can be used to execute code when the track reaches a certain position.
+   *
+   * @param marker The marker to add.
+   */
+  void addMarker(TrackMarker marker);
+
+  /**
+   * Removes a marker from the track.
+   *
+   * @param marker The marker to remove.
+   */
+  void removeMarker(TrackMarker marker);
 
   /**
    * @return Duration of the track in milliseconds
@@ -79,7 +96,7 @@ public interface AudioTrack extends AudioItem {
   /**
    * @param klass The expected class of the user data (or a superclass of it).
    * @return Object previously stored with {@link #setUserData(Object)} if it is of the specified type. If it is set,
-   *         but with a different type, null is returned.
+   * but with a different type, null is returned.
    */
   <T> T getUserData(Class<T> klass);
 }
