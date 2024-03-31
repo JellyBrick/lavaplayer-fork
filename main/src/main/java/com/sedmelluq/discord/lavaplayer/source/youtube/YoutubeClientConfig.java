@@ -20,11 +20,11 @@ import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeHttpContext
 import static com.sedmelluq.discord.lavaplayer.source.youtube.YoutubePayloadHelper.putOnceAndJoin;
 
 public class YoutubeClientConfig extends JSONObject {
-  public static final AndroidVersion DEFAULT_ANDROID_VERSION = AndroidVersion.ANDROID_11;
+  public static final AndroidVersion DEFAULT_ANDROID_VERSION = AndroidVersion.ANDROID_13;
 
   public static YoutubeClientConfig ANDROID = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_ANDROID_API_KEY)
-      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s) gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
+      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s); ko_KR; sdk_gphone64_x86_64 Build/UPB4.230623.005) gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
       .withClientName(CLIENT_ANDROID_NAME)
       .withClientField("clientVersion", CLIENT_ANDROID_VERSION)
       .withClientField("androidSdkVersion", DEFAULT_ANDROID_VERSION.getSdkVersion())
@@ -151,7 +151,8 @@ public class YoutubeClientConfig extends JSONObject {
 
   public enum AndroidVersion {
     // https://apilevels.com/
-    ANDROID_11("11", 30);
+    ANDROID_11("11", 30),
+    ANDROID_13("13", 33);
 
     private final String osVersion;
     private final int sdkVersion;
