@@ -220,9 +220,8 @@ public class YoutubeAccessTokenTracker {
       if (visitorId == null) {
         updateVisitorId();
       }
-
-      return visitorId;
     }
+    return visitorId;
   }
 
   public Object getTokenLock() {

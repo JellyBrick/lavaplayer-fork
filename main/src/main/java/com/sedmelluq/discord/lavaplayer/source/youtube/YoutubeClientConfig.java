@@ -27,8 +27,7 @@ public class YoutubeClientConfig extends JSONObject {
       .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s) gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
       .withClientName(CLIENT_ANDROID_NAME)
       .withClientField("clientVersion", CLIENT_ANDROID_VERSION)
-      .withClientField("androidSdkVersion", DEFAULT_ANDROID_VERSION.getSdkVersion())
-      .withUserField("lockedSafetyMode", false);
+      .withClientField("androidSdkVersion", DEFAULT_ANDROID_VERSION.getSdkVersion());
       //.withClientField("osName", "Android")
       //.withClientField("osVersion", DEFAULT_ANDROID_VERSION.getOsVersion())
       //.withClientDefaultScreenParameters();
@@ -44,8 +43,7 @@ public class YoutubeClientConfig extends JSONObject {
   public static YoutubeClientConfig WEB = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_WEB_API_KEY)
       .withClientName(CLIENT_WEB_NAME)
-      .withClientField("clientVersion", CLIENT_WEB_VERSION)
-      .withUserField("lockedSafetyMode", false);
+      .withClientField("clientVersion", CLIENT_WEB_VERSION);
 
   public static YoutubeClientConfig MUSIC = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_MUSIC_API_KEY) // Requires header (Referer music.youtube.com)

@@ -230,8 +230,24 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
         .withRootField("videoId", videoId)
         .withRootField("racyCheckOk", true)
         .withRootField("contentCheckOk", true)
+        .withClientField("originalUrl", "https://www.youtube.com/watch?v=" + videoId)
         .withPlaybackSignatureTimestamp(playerScriptTimestamp.scriptTimestamp)
         .setAttribute(httpInterface);
+
+    String visitorId = sourceManager.getAccessTokenTracker().getVisitorId();
+    if (visitorId != null) {
+      clientConfig
+        .withClientField("visitorData", visitorId)
+        .withClientField("screenPixelDensity", 1)
+        .withClientField("clientFormFactor", "UNKNOWN_FORM_FACTOR")
+        .withClientField("screenDensityFloat", 1.25f)
+        .withClientField("screenWidthPoints", 1920)
+        .withClientField("screenHeightPoints", 1080)
+        .withClientField("userInterfaceTheme", "USER_INTERFACE_THEME_DARK")
+        .withClientField("connectionType", "CONN_CELLULAR_4G")
+        .withClientField("playerType", "UNIPLAYER")
+        .withUserField("lockedSafetyMode", false);
+    }
 
     String payload = clientConfig.toJsonString();
 
