@@ -24,7 +24,7 @@ public class YoutubeClientConfig extends JSONObject {
 
   public static YoutubeClientConfig ANDROID = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_ANDROID_API_KEY)
-      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s); gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
+      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s) gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
       .withClientName(CLIENT_ANDROID_NAME)
       .withClientField("clientVersion", CLIENT_ANDROID_VERSION)
       .withClientField("androidSdkVersion", DEFAULT_ANDROID_VERSION.getSdkVersion())
