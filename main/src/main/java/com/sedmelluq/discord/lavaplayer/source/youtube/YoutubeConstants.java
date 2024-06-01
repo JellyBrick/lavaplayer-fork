@@ -13,7 +13,7 @@ public class YoutubeConstants {
 
     static final String INNERTUBE_WEB_API_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
     static final String CLIENT_WEB_NAME = "WEB";
-    static final String CLIENT_WEB_VERSION = "2.20220801.00.00";
+    static final String CLIENT_WEB_VERSION = "2.20240224.11.00";
 
     static final String INNERTUBE_TV_API_KEY = "AIzaSyD-L7DIyuMgBk-B4DYmjJZ5UG-D6Y-vkMc";
     static final String CLIENT_TVHTML5_NAME = "TVHTML5_SIMPLY_EMBEDDED_PLAYER";
@@ -35,7 +35,7 @@ public class YoutubeConstants {
 
     static final String INNERTUBE_MUSIC_API_KEY = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30";
     static final String CLIENT_MUSIC_NAME = "WEB_REMIX";
-    static final String CLIENT_MUSIC_VERSION = "0.1";
+    static final String CLIENT_MUSIC_VERSION = "1.20240401.00.00";
 
     static final String SEARCH_MUSIC_PARAMS = "Eg-KAQwIARAAGAAgACgAMABqChADEAQQCRAFEAo=";
 

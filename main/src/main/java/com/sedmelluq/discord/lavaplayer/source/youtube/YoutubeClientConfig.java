@@ -44,7 +44,8 @@ public class YoutubeClientConfig extends JSONObject {
   public static YoutubeClientConfig WEB = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_WEB_API_KEY)
       .withClientName(CLIENT_WEB_NAME)
-      .withClientField("clientVersion", CLIENT_WEB_VERSION);
+      .withClientField("clientVersion", CLIENT_WEB_VERSION)
+      .withUserField("lockedSafetyMode", false);
 
   public static YoutubeClientConfig MUSIC = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_MUSIC_API_KEY) // Requires header (Referer music.youtube.com)
