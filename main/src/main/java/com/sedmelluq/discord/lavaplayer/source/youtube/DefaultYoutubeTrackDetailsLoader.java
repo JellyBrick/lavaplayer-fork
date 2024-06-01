@@ -227,15 +227,17 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
     }
 
     clientConfig
+        .withRootField("videoId", videoId)
         .withRootField("racyCheckOk", true)
         .withRootField("contentCheckOk", true)
-        .withRootField("videoId", videoId)
         .withPlaybackSignatureTimestamp(playerScriptTimestamp.scriptTimestamp)
         .setAttribute(httpInterface);
 
-    log.debug("Loading track info with payload: {}", clientConfig.toJsonString());
+    String payload = clientConfig.toJsonString();
 
-    post.setEntity(new StringEntity(clientConfig.toJsonString(), "UTF-8"));
+    log.debug("Loading track info with payload: {}", payload);
+
+    post.setEntity(new StringEntity(payload, "UTF-8"));
     try (CloseableHttpResponse response = httpInterface.execute(post)) {
       HttpClientTools.assertSuccessWithContent(response, "video page response");
 
