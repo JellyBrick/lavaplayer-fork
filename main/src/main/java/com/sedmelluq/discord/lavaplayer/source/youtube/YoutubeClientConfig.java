@@ -24,13 +24,14 @@ public class YoutubeClientConfig extends JSONObject {
 
   public static YoutubeClientConfig ANDROID = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_ANDROID_API_KEY)
-      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s); ko_KR; sdk_gphone64_x86_64 Build/UPB4.230623.005) gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
+      .withUserAgent(String.format("com.google.android.youtube/%s (Linux; U; Android %s); gzip", CLIENT_ANDROID_VERSION, DEFAULT_ANDROID_VERSION.getOsVersion()))
       .withClientName(CLIENT_ANDROID_NAME)
       .withClientField("clientVersion", CLIENT_ANDROID_VERSION)
       .withClientField("androidSdkVersion", DEFAULT_ANDROID_VERSION.getSdkVersion())
+      .withUserField("lockedSafetyMode", false);
       //.withClientField("osName", "Android")
       //.withClientField("osVersion", DEFAULT_ANDROID_VERSION.getOsVersion())
-      .withClientDefaultScreenParameters();
+      //.withClientDefaultScreenParameters();
 
   public static YoutubeClientConfig TV_EMBEDDED = new YoutubeClientConfig()
       .withApiKey(INNERTUBE_WEB_API_KEY) //.withApiKey(INNERTUBE_TV_API_KEY) // Requires header (Referer tv.youtube.com)

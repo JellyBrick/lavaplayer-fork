@@ -9,7 +9,7 @@ public class YoutubeConstants {
 
     static final String INNERTUBE_ANDROID_API_KEY = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w";
     static final String CLIENT_ANDROID_NAME = "ANDROID";
-    static final String CLIENT_ANDROID_VERSION = "18.48.37";
+    static final String CLIENT_ANDROID_VERSION = "19.07.39";
 
     static final String INNERTUBE_WEB_API_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
     static final String CLIENT_WEB_NAME = "WEB";
